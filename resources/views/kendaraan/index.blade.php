@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="10">
     <title>Monitoring Kendaraan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body>
     <div class="container mt-5">
 
@@ -27,7 +28,7 @@
                     <th>Tujuan</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="kendaraanTable">
                 @foreach($kendaraan as $k)
                 <tr>
                     <td>
@@ -53,5 +54,44 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        function fetchData() {
+            $.ajax({
+                url: '/kendaraan/data'
+                , type: 'GET'
+                , dataType: 'json'
+                , success: function(response) {
+                    let tableBody = $('#kendaraanTable');
+                    tableBody.empty();
+                    response.forEach(function(k) {
+                        let statusBadge = k.status === 'Stand By' ?
+                            `<span class="badge bg-success">Stand By</span>` :
+                            `<span class="badge bg-warning">Pergi</span> Jam ${new Date(k.updated_at).toLocaleTimeString('id-ID')}`;
+
+                        let row = `
+                            <tr>
+                                <td>${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</td>
+                                <td>${k.nama_mobil}</td>
+                                <td><img src="${k.image_path}" style="height: 100px; width: 100px; object-fit: cover;"></td>
+                                <td>${k.nopol}</td>
+                                <td>${statusBadge}</td>
+                                <td>${k.nama_pemakai || '-'} - ${k.departemen || '-'}</td>
+                                <td>${k.tujuan || '-'}</td>
+                            </tr>`;
+                        tableBody.append(row);
+                    });
+                }
+                , error: function() {
+                    console.log('Gagal mengambil data.');
+                }
+            });
+        }
+
+        setInterval(fetchData, 1000);
+
+    </script>
+
+
 </body>
 </html>

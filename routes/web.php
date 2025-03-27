@@ -14,10 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('kendaraan.index'); 
-});
-
 Route::get('/', [KendaraanController::class, 'index']);
+Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
 Route::get('/overview', [KendaraanController::class, 'kendaraan']);
 Route::put('/kendaraan/update', [KendaraanController::class, 'update']);

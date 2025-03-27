@@ -21,176 +21,106 @@
             </div>
         </div>
 
-        <div class="row">
-            @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            @endif
-
+        <div id="alertBox"></div>
+        <div class="row" id="kendaraanList">
             @foreach($kendaraan as $k)
-            <div class="col-md-4 mb-4">
+            <div class="col-md-4 mb-4 kendaraan-card" data-id="{{ $k->id }}">
                 <div class="card">
-                    <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;" alt="...">
-
+                    <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
                     <div class="card-body position-relative">
                         <h5 class="card-title">{{ $k->nama_mobil }}</h5>
                         <p class="card-text">{{ $k->nopol }}</p>
-                        <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal{{ $k->id }}">
-                            Update Status
-                        </button>
-
-                        @if($k->status == 'Stand By')
-                        <span class="badge bg-success position-absolute bottom-3 end-0 m-2">Stand By</span>
-                        @else
-                        <span class="badge bg-warning position-absolute bottom-3 end-0 m-2">Pergi</span>
-                        @endif
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">Update Status</button>
+                        <span class="badge bg-{{ $k->status == 'Stand By' ? 'success' : 'warning' }} position-absolute bottom-3 end-0 m-2 status-badge">{{ $k->status }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal Form -->
-            <div class="modal fade" id="exampleModal{{ $k->id }}" tabindex="-1" aria-labelledby="modalLabel{{ $k->id }}" aria-hidden="true">
+            <div class="modal fade" id="modal{{ $k->id }}" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel{{ $k->id }}">Update Status Kendaraan</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5 class="modal-title">Update Status Kendaraan</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <form id="updateForm{{ $k->id }}" action="{{ url('/kendaraan/update') }}" method="POST">
+                            <form class="updateForm" data-id="{{ $k->id }}">
                                 @csrf
                                 @method('PUT')
-
                                 <input type="hidden" name="id" value="{{ $k->id }}">
-                                <div class="mb-3">
-                                    <label for="nama_mobil" class="form-label">Nama Mobil</label>
-                                    <input type="text" class="form-control" id="nama_mobil" value="{{ $k->nama_mobil }}" style="background-color: #e9ecef; color: #6c757d; cursor: not-allowed;" readonly>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="nopol" class="form-label">No Polisi</label>
-                                    <input type="text" class="form-control" id="nopol" value="{{ $k->nopol }}" style="background-color: #e9ecef; color: #6c757d; cursor: not-allowed;" readonly>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select name="status" class="form-select" onchange="toggleInput(this, 'inputText{{ $k->id }}')">
-                                        <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By</option>
-                                        <option value="Pergi" {{ $k->status == 'Pergi' ? 'selected' : '' }}>Pergi</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3" id="inputText{{ $k->id }}" style="display:  {{ $k->status == 'Pergi' ? 'block' : 'none' }};">
-                                    <label for="nama_pemakai" class="form-label">Nama Pemakai</label>
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-select statusSelect" data-id="{{ $k->id }}">
+                                    <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By</option>
+                                    <option value="Pergi" {{ $k->status == 'Pergi' ? 'selected' : '' }}>Pergi</option>
+                                </select>
+                                <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
+                                    <label class="form-label">Nama Pemakai</label>
                                     <input type="text" class="form-control" name="nama_pemakai">
-
-                                    <label for="departemen" class="form-label">Departemen</label>
+                                    <label class="form-label">Departemen</label>
                                     <input type="text" class="form-control" name="departemen">
-
-                                    <label for="tujuan" class="form-label">Tujuan</label>
-                                    <textarea name="tujuan" class="form-control" placeholder="Masukkan tujuan"></textarea>
+                                    <label class="form-label">Tujuan</label>
+                                    <textarea name="tujuan" class="form-control"></textarea>
                                 </div>
-
-                                <button type="submit" class="btn btn-primary">Update</button>
+                                <button type="submit" class="btn btn-primary mt-3">Update</button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
-
             @endforeach
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // Fungsi untuk menampilkan atau menyembunyikan input tujuan berdasarkan status yang dipilih
-        function toggleInput(select, divId) {
-            let inputDiv = document.getElementById(divId);
-            if (!inputDiv) return;
-
-            let inputs = inputDiv.querySelectorAll("input, textarea");
-
-            if (select.value === "Pergi") {
-                inputDiv.style.display = "block";
-                inputs.forEach(input => input.setAttribute("required", "required"));
-            } else {
-                inputDiv.style.display = "none";
-                inputs.forEach(input => input.removeAttribute("required")); // Hapus required saat disembunyikan
-            }
-        }
-
-
-
         document.addEventListener("DOMContentLoaded", function() {
-            // Pastikan input tujuan tampil sesuai status awal
-            document.querySelectorAll("select[name='status']").forEach(select => {
-                let divId = select.getAttribute("onchange").match(/'([^']+)'/)[1]; // Ambil divId dari atribut onchange
-                toggleInput(select, divId);
+            document.querySelectorAll(".statusSelect").forEach(select => {
+                toggleAdditionalFields(select);
+                select.addEventListener("change", function() {
+                    toggleAdditionalFields(this);
+                });
             });
 
-            // Tambahkan event listener untuk submit form menggunakan AJAX
-            document.querySelectorAll("form[id^='updateForm']").forEach(form => {
+            function toggleAdditionalFields(select) {
+                let div = document.getElementById("additionalFields" + select.dataset.id);
+                div.style.display = select.value === "Pergi" ? "block" : "none";
+            }
+
+            document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
-
                     let formData = new FormData(this);
-                    let actionUrl = this.getAttribute("action");
-
-                    fetch(actionUrl, {
+                    let id = this.dataset.id;
+                    fetch("/kendaraan/update", {
                             method: "POST"
                             , body: formData
                             , headers: {
                                 "X-CSRF-TOKEN": document.querySelector("meta[name='csrf-token']").getAttribute("content")
                             }
                         })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error("Gagal memperbarui data!");
-                            }
-                            return response.json();
-                        })
+                        .then(response => response.json())
                         .then(data => {
                             if (data.success) {
+                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
 
-                                // jika sukses
-                                let alertBox = document.createElement("div");
-                                alertBox.className = "alert alert-success alert-dismissible fade show";
-                                alertBox.style.maxWidth = "400px";
-                                alertBox.style.margin = "10px auto";
-                                alertBox.innerHTML = `
-                                ${data.message}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                `;
-                                document.body.prepend(alertBox);
-
-                                // Tutup modal setelah submit
-                                let modalElement = document.getElementById("exampleModal" + formData.get("id"));
-                                if (modalElement) {
-                                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                                    if (modalInstance) modalInstance.hide();
-                                }
-
-                                // Tunggu 1 detik sebelum reload agar alert terlihat
                                 setTimeout(() => {
-                                    location.reload();
-                                }, 5000);
+                                    document.getElementById("alertBox").innerHTML = "";
+                                }, 3000);
+
+
+                                let card = document.querySelector(`.kendaraan-card[data-id='${id}']`);
+                                card.querySelector(".status-badge").textContent = formData.get("status");
+                                card.querySelector(".status-badge").className = `badge bg-${formData.get("status") === 'Stand By' ? 'success' : 'warning'} position-absolute bottom-3 end-0 m-2 status-badge`;
+                                let modalElement = document.getElementById("modal" + id);
+                                bootstrap.Modal.getInstance(modalElement).hide();
                             }
                         })
-                        .catch(error => {
-                            console.error("Error:", error);
-                            alert("Terjadi kesalahan saat memperbarui data.");
-                        });
+                        .catch(error => console.error("Error:", error));
                 });
             });
         });
 
     </script>
-
-
 
 </body>
 </html>
