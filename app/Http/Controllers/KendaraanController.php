@@ -88,11 +88,15 @@ class KendaraanController extends Controller
 
         // Simpan tujuan hanya jika status "Pergi"
         if ($request->status == "Pergi") {
+            $kendaraan->driver = $request->driver;
             $kendaraan->tujuan = $request->tujuan;
+            $kendaraan->keterangan = $request->keterangan;
         } else {
             $kendaraan->nama_pemakai = null;
             $kendaraan->departemen = null;
+            $kendaraan->driver = null;
             $kendaraan->tujuan = null;
+            $kendaraan->keterangan = null;
         }
 
         $kendaraan->save();

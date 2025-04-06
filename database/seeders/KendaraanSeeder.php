@@ -20,7 +20,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+             'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Xenia', 
@@ -28,7 +30,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+             'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Xenia', 
@@ -36,7 +40,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Xenia', 
@@ -44,7 +50,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Yaris', 
@@ -52,7 +60,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Gran Max', 
@@ -60,7 +70,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Isuzu Traga', 
@@ -68,7 +80,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
             [
              'nama_mobil' => 'Isuzu SKT', 
@@ -76,7 +90,9 @@ class KendaraanSeeder extends Seeder
              'status' => 'Stand By',
              'nama_pemakai' => '',
              'departemen' => '',
-             'tujuan' => ''
+             'driver' => '',
+             'tujuan' => '',
+              'keterangan' => ''
             ],
         ]);
     }

@@ -25,7 +25,9 @@
                     <th>No Polisi</th>
                     <th>Status</th>
                     <th>Pemakai</th>
+                    <th>Driver</th>
                     <th>Tujuan</th>
+                    <th>Keterangan</th>
                 </tr>
             </thead>
             <tbody id="kendaraanTable">
@@ -44,11 +46,13 @@
                         <span class="badge bg-success">Stand By</span>
                         @else
                         <span class="badge bg-warning">Pergi</span>
-                        Jam {{ \Illuminate\Support\Carbon::parse($k->updated_at)->timezone('Asia/Jakarta')->format('H:i:s') }}
+                        Jam {{ \Illuminate\Support\Carbon::parse($k->updated_at)->timezone('Asia/Jakarta')->format('H:i') }}
                         @endif
                     </td>
-                    <td>{{ $k->nama_pemakai }} - {{ $k->departemen }} </td>
+                    <td>{{ $k->nama_pemakai }} <br> {{ $k->departemen }} </td>
+                    <td>{{ $k->driver }}</td>
                     <td>{{ $k->tujuan }}</td>
+                    <td>{{ $k->keterangan }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -67,7 +71,7 @@
                     response.forEach(function(k) {
                         let statusBadge = k.status === 'Stand By' ?
                             `<span class="badge bg-success">Stand By</span>` :
-                            `<span class="badge bg-warning">Pergi</span> Jam ${new Date(k.updated_at).toLocaleTimeString('id-ID')}`;
+                            `<span class="badge bg-warning">Pergi</span> Jam ${new Date(k.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
 
                         let row = `
                             <tr>
@@ -76,8 +80,10 @@
                                 <td><img src="${k.image_path}" style="height: 100px; width: 100px; object-fit: cover;"></td>
                                 <td>${k.nopol}</td>
                                 <td>${statusBadge}</td>
-                                <td>${k.nama_pemakai || '-'} - ${k.departemen || '-'}</td>
+                                <td>${(k.nama_pemakai && k.departemen) ? `${k.nama_pemakai}<br>${k.departemen}` : '-'}</td>
+                                <td>${k.driver || '-'}</td>
                                 <td>${k.tujuan || '-'}</td>
+                                <td>${k.keterangan || '-'}</td>
                             </tr>`;
                         tableBody.append(row);
                     });

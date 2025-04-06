@@ -48,18 +48,33 @@
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="id" value="{{ $k->id }}">
+
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select statusSelect" data-id="{{ $k->id }}">
                                     <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By</option>
                                     <option value="Pergi" {{ $k->status == 'Pergi' ? 'selected' : '' }}>Pergi</option>
                                 </select>
+
                                 <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
-                                    <label class="form-label">Nama Pemakai</label>
-                                    <input type="text" class="form-control" name="nama_pemakai">
-                                    <label class="form-label">Departemen</label>
-                                    <input type="text" class="form-control" name="departemen">
-                                    <label class="form-label">Tujuan</label>
-                                    <textarea name="tujuan" class="form-control"></textarea>
+                                    <label class="form-label">Nama Pemakai *</label>
+                                    <input type="text" class="form-control" name="nama_pemakai" required>
+
+                                    <label class="form-label">Departemen *</label>
+                                    <input type="text" class="form-control" name="departemen" required>
+
+                                    <label class="form-label">Driver</label>
+                                    <select name="driver" class="form-select">
+                                        <option value="Abas">Abas</option>
+                                        <option value="Kosasih">Kosasih</option>
+                                        <option value="Rahmat">Rahmat</option>
+                                        <option value="Fiki">Fiki</option>
+                                    </select>
+
+                                    <label class="form-label">Tujuan *</label>
+                                    <input type="text" class="form-control" name="tujuan" required>
+
+                                    <label class="form-label">Keterangan (opsional)</label>
+                                    <textarea name="keterangan" class="form-control"></textarea>
                                 </div>
                                 <button type="submit" class="btn btn-primary mt-3">Update</button>
                             </form>
@@ -74,6 +89,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+
+            //ketika pilih pergi maka muncul form
             document.querySelectorAll(".statusSelect").forEach(select => {
                 toggleAdditionalFields(select);
                 select.addEventListener("change", function() {
@@ -83,9 +100,17 @@
 
             function toggleAdditionalFields(select) {
                 let div = document.getElementById("additionalFields" + select.dataset.id);
-                div.style.display = select.value === "Pergi" ? "block" : "none";
-            }
+                const inputs = div.querySelectorAll("input, textarea, select");
 
+                if (select.value === "Pergi") {
+                    div.style.display = "block";
+                } else {
+                    div.style.display = "none";
+                }
+            }
+            // end
+
+            // form submit
             document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();

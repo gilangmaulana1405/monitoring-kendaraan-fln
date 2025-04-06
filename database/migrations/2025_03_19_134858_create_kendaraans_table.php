@@ -16,9 +16,11 @@ return new class extends Migration
             $table->string('nama_mobil');
             $table->string('nopol');
             $table->enum('status',['Stand By', 'Pergi'])->default('Stand By');
-            $table->text('tujuan')->nullable();
             $table->string('nama_pemakai')->nullable();
             $table->string('departemen')->nullable();
+            $table->text('tujuan')->nullable();
+            $table->string('driver')->nullable();
+            $table->string('keterangan')->nullable();
             $table->timestamps();
         });
     }
