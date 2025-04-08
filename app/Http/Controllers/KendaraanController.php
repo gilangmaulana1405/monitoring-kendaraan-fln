@@ -25,7 +25,14 @@ class KendaraanController extends Controller
             }
             $k->image_path = $image;
             return $k;
-        });
+        })->sortBy(function ($item) {
+            return match ($item->status) {
+                'Stand By'  => 1,
+                'Pergi'     => 2,
+                'Perbaikan' => 3,
+            };
+        })->values();
+
         return view('kendaraan.index', compact('kendaraan'));
     }
 
@@ -34,18 +41,25 @@ class KendaraanController extends Controller
         $kendaraan = Kendaraan::all()->map(function ($k) {
             $imgPath = public_path('img/');
             $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-            $image = 'img/default.png'; // Gunakan path relatif
+            $image = 'img/default.png'; // Path relatif
 
             foreach ($extensions as $ext) {
-                if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
-                    $image = 'img/' . $k->nopol . '.' . $ext; // Path relatif ke public/
+                $fileName = $k->nopol . '.' . $ext;
+                if (File::exists($imgPath . $fileName)) {
+                    $image = 'img/' . $fileName;
                     break;
                 }
             }
 
-            $k->image_path = url($image); // Gunakan URL lengkap Laravel
+            $k->image_path = url($image); // URL lengkap
             return $k;
-        });
+        })->sortBy(function ($item) {
+            return match ($item->status) {
+                'Stand By'  => 1,
+                'Pergi'     => 2,
+                'Perbaikan' => 3,
+            };
+        })->values();
 
         return response()->json($kendaraan);
     }
@@ -67,7 +81,13 @@ class KendaraanController extends Controller
 
             $k->image_path = $image;
             return $k;
-        });
+        })->sortBy(function ($item) {
+            return match ($item->status) {
+                'Stand By'  => 1,
+                'Pergi'     => 2,
+                'Perbaikan' => 3,
+            };
+        })->values();;
 
         return view('kendaraan.overview', compact('kendaraan'));
     }
