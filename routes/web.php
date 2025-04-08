@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [KendaraanController::class, 'index']);
+Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
-Route::get('/overview', [KendaraanController::class, 'kendaraan']);
+Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
 Route::put('/kendaraan/update', [KendaraanController::class, 'update']);

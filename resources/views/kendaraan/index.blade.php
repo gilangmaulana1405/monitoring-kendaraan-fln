@@ -44,9 +44,13 @@
                     <td>
                         @if($k->status == 'Stand By')
                         <span class="badge bg-success">Stand By</span>
-                        @else
+                        @elseif($k->status == 'Pergi')
                         <span class="badge bg-warning">Pergi</span>
                         Jam {{ \Illuminate\Support\Carbon::parse($k->updated_at)->timezone('Asia/Jakarta')->format('H:i') }}
+                        @elseif($k->status == 'Perbaikan')
+                        <span class="badge bg-danger">Perbaikan</span>
+                        @else
+                        <span class="badge bg-secondary">Status Tidak Dikenal</span>
                         @endif
                     </td>
                     <td>{{ $k->nama_pemakai }} <br> {{ $k->departemen }} </td>
@@ -69,9 +73,24 @@
                     let tableBody = $('#kendaraanTable');
                     tableBody.empty();
                     response.forEach(function(k) {
-                        let statusBadge = k.status === 'Stand By' ?
-                            `<span class="badge bg-success">Stand By</span>` :
-                            `<span class="badge bg-warning">Pergi</span> Jam ${new Date(k.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+
+                        let statusBadge = '';
+
+                        if (k.status === 'Stand By') {
+                            statusBadge = `<span class="badge bg-success">Stand By</span>`;
+                        } else if (k.status === 'Pergi') {
+                            const jam = new Date(k.updated_at).toLocaleTimeString('id-ID', {
+                                hour: '2-digit'
+                                , minute: '2-digit'
+                            });
+                            statusBadge = `<span class="badge bg-warning">Pergi</span> Jam ${jam}`;
+                        } else if (k.status === 'Perbaikan') {
+                            statusBadge = `<span class="badge bg-danger">Perbaikan</span>`;
+                        } else {
+                            throw new Error(`Status tidak dikenal: ${k.status}`);
+                        }
+
+
 
                         let row = `
                             <tr>

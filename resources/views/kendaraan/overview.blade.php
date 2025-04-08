@@ -31,7 +31,21 @@
                         <h5 class="card-title">{{ $k->nama_mobil }}</h5>
                         <p class="card-text">{{ $k->nopol }}</p>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">Update Status</button>
-                        <span class="badge bg-{{ $k->status == 'Stand By' ? 'success' : 'warning' }} position-absolute bottom-3 end-0 m-2 status-badge">{{ $k->status }}</span>
+
+                        {{-- status dalam card --}}
+                        @php
+                        $statusClass = match($k->status) {
+                        'Stand By' => 'success',
+                        'Pergi' => 'warning',
+                        'Perbaikan' => 'danger',
+                        default => throw new \Exception('Status tidak dikenal: ' . $k->status),
+                        };
+                        @endphp
+
+                        <span class="badge bg-{{ $statusClass }} position-absolute bottom-3 end-0 m-2 status-badge">
+                            {{ $k->status }}
+                        </span>
+                        {{-- end --}}
                     </div>
                 </div>
             </div>
@@ -53,14 +67,15 @@
                                 <select name="status" class="form-select statusSelect" data-id="{{ $k->id }}">
                                     <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By</option>
                                     <option value="Pergi" {{ $k->status == 'Pergi' ? 'selected' : '' }}>Pergi</option>
+                                    <option value="Perbaikan" {{ $k->status == 'Perbaikan' ? 'selected' : '' }}>Perbaikan</option>
                                 </select>
 
                                 <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
                                     <label class="form-label">Nama Pemakai *</label>
-                                    <input type="text" class="form-control" name="nama_pemakai" required>
+                                    <input type="text" class="form-control" name="nama_pemakai">
 
                                     <label class="form-label">Departemen *</label>
-                                    <input type="text" class="form-control" name="departemen" required>
+                                    <input type="text" class="form-control" name="departemen">
 
                                     <label class="form-label">Driver</label>
                                     <select name="driver" class="form-select">
@@ -71,7 +86,7 @@
                                     </select>
 
                                     <label class="form-label">Tujuan *</label>
-                                    <input type="text" class="form-control" name="tujuan" required>
+                                    <input type="text" class="form-control" name="tujuan">
 
                                     <label class="form-label">Keterangan (opsional)</label>
                                     <textarea name="keterangan" class="form-control"></textarea>
@@ -132,10 +147,17 @@
                                     document.getElementById("alertBox").innerHTML = "";
                                 }, 3000);
 
-
                                 let card = document.querySelector(`.kendaraan-card[data-id='${id}']`);
-                                card.querySelector(".status-badge").textContent = formData.get("status");
-                                card.querySelector(".status-badge").className = `badge bg-${formData.get("status") === 'Stand By' ? 'success' : 'warning'} position-absolute bottom-3 end-0 m-2 status-badge`;
+                                let status = formData.get("status");
+                                let color = {
+                                    "Stand By": "success"
+                                    , "Pergi": "warning"
+                                    , "Perbaikan": "danger"
+                                } [status] || "secondary";
+
+                                card.querySelector(".status-badge").textContent = status;
+                                card.querySelector(".status-badge").className = `badge bg-${color} position-absolute bottom-3 end-0 m-2 status-badge`;
+
                                 let modalElement = document.getElementById("modal" + id);
                                 bootstrap.Modal.getInstance(modalElement).hide();
                             }
