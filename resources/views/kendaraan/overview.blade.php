@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>Monitoring Kendaraan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container mt-5">
         <div class="row align-items-center">
@@ -34,7 +36,7 @@
 
                         {{-- status dalam card --}}
                         @php
-                        $statusClass = match($k->status) {
+                        $statusClass = match ($k->status) {
                         'Stand By' => 'success',
                         'Pergi' => 'warning',
                         'Perbaikan' => 'danger',
@@ -42,10 +44,20 @@
                         };
                         @endphp
 
-                        <span class="badge bg-{{ $statusClass }} position-absolute bottom-3 end-0 m-2 status-badge">
-                            {{ $k->status }}
-                        </span>
-                        {{-- end --}}
+                        <div class="position-absolute bottom-0 end-0 text-end m-2">
+                            <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
+                                {{ $k->status }}
+                            </span>
+                            <br>
+                            <small class="text-muted waktu-update mt-1 d-block">
+                                @php
+                                if ($k->updated_at) {
+                                $diffInMinutes = $k->updated_at->diffInMinutes(now());
+                                $diffInHours = $k->updated_at->diffInHours(now());
+                                $diffInDays = $k->updated_at->diffInDays(now());
+
+                                if ($diffInMinutes < 60) { $output=$diffInMinutes . ' menit yang lalu' ; } elseif ($diffInHours < 24) { $output=$diffInHours . ' jam yang lalu' ; } else { $output=$diffInDays . ' hari yang lalu' ; } } else { $output='Belum pernah diperbarui' ; } @endphp {{ $output }} </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -65,9 +77,11 @@
 
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select statusSelect" data-id="{{ $k->id }}">
-                                    <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By</option>
+                                    <option value="Stand By" {{ $k->status == 'Stand By' ? 'selected' : '' }}>Stand By
+                                    </option>
                                     <option value="Pergi" {{ $k->status == 'Pergi' ? 'selected' : '' }}>Pergi</option>
-                                    <option value="Perbaikan" {{ $k->status == 'Perbaikan' ? 'selected' : '' }}>Perbaikan</option>
+                                    <option value="Perbaikan" {{ $k->status == 'Perbaikan' ? 'selected' : '' }}>Perbaikan
+                                    </option>
                                 </select>
 
                                 <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
@@ -155,8 +169,17 @@
                                     , "Perbaikan": "danger"
                                 } [status] || "secondary";
 
-                                card.querySelector(".status-badge").textContent = status;
-                                card.querySelector(".status-badge").className = `badge bg-${color} position-absolute bottom-3 end-0 m-2 status-badge`;
+                                let badge = card.querySelector(".status-badge");
+                                if (badge) {
+                                    badge.textContent = status;
+                                    badge.className = `badge bg-${color} mb-1 status-badge`;
+                                }
+
+                                let waktu = card.querySelector(".waktu-update");
+                                if (waktu) {
+                                    waktu.textContent = "Baru saja diperbarui";
+                                    waktu.classList.add("mt-1", "d-block");
+                                }
 
                                 let modalElement = document.getElementById("modal" + id);
                                 bootstrap.Modal.getInstance(modalElement).hide();
@@ -170,4 +193,5 @@
     </script>
 
 </body>
+
 </html>

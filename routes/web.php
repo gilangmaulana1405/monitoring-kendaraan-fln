@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/', function () {
+    return redirect('/monitoring-kendaraan');
+});
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
+
 Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
 Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
 Route::put('/kendaraan/update', [KendaraanController::class, 'update']);
