@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kendaraan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 
 class KendaraanController extends Controller
@@ -39,29 +40,42 @@ class KendaraanController extends Controller
     public function getData()
     {
         $kendaraan = Kendaraan::all()->map(function ($k) {
-            $imgPath = public_path('img/');
-            $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-            $image = 'img/default.png'; // Path relatif
+        $imgPath = public_path('img/');
+        $extensions = ['jpeg', 'jpg', 'png', 'webp'];
+        $image = 'img/default.png';
 
-            foreach ($extensions as $ext) {
-                $fileName = $k->nopol . '.' . $ext;
-                if (File::exists($imgPath . $fileName)) {
-                    $image = 'img/' . $fileName;
-                    break;
-                }
+        foreach ($extensions as $ext) {
+            if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
+                $image = 'img/' . $k->nopol . '.' . $ext;
+                break;
             }
+        }
 
-            $k->image_path = url($image); // URL lengkap
-            return $k;
-        })->sortBy(function ($item) {
-            return match ($item->status) {
-                'Stand By'  => 1,
-                'Pergi'     => 2,
-                'Perbaikan' => 3,
-            };
-        })->values();
+        return [
+            'nama_mobil'    => $k->nama_mobil,
+            'image_path'    => asset($image),
+            'nopol'         => $k->nopol,
+            'status'        => $k->status,
+            'nama_pemakai'  => $k->nama_pemakai,
+            'departemen'    => $k->departemen,
+            'driver'        => $k->driver,
+            'tujuan'        => $k->tujuan,
+            'keterangan'    => $k->keterangan,
+            'updated_at'    => Carbon::parse($k->updated_at)
+                                ->timezone('Asia/Jakarta')
+                                ->toIso8601String(),
+        ];
+    })->sortBy(function ($item) {
+        return match ($item['status']) {
+            'Stand By'  => 1,
+            'Pergi'     => 2,
+            'Perbaikan' => 3,
+            default     => 4,
+        };
+    })->values();
 
-        return response()->json($kendaraan);
+    
+    return response()->json($kendaraan);
     }
 
     // list kendaraan untuk update data

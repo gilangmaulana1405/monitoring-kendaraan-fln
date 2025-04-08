@@ -89,7 +89,19 @@
                                     <input type="text" class="form-control" name="nama_pemakai">
 
                                     <label class="form-label">Departemen *</label>
-                                    <input type="text" class="form-control" name="departemen">
+                                    <select name="departemen" class="form-select">
+                                        <option value="ENGINEERING">ENGINEERING</option>
+                                        <option value="FA">FA</option>
+                                        <option value="HR/GA">HR/GA</option>
+                                        <option value="HSE">HSE</option>
+                                        <option value="IT">IT</option>
+                                        <option value="MAINTENANCE">MAINTENANCE</option>
+                                        <option value="MARKETING">MARKETING</option>
+                                        <option value="PPIC">PPIC</option>
+                                        <option value="PRODUKSI">PRODUKSI</option>
+                                        <option value="PURCHASING">PURCHASING</option>
+                                        <option value="QUALITY">QUALITY</option>
+                                    </select>
 
                                     <label class="form-label">Driver</label>
                                     <select name="driver" class="form-select">
@@ -159,6 +171,7 @@
 
                                 setTimeout(() => {
                                     document.getElementById("alertBox").innerHTML = "";
+                                    location.reload();
                                 }, 3000);
 
                                 let card = document.querySelector(`.kendaraan-card[data-id='${id}']`);

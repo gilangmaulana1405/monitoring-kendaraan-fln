@@ -11,15 +11,21 @@
 <body>
     <div class="container mt-5">
 
-        <div class="d-flex flex-column align-items-center">
-            <img src="img/fln-logo.png" class="mb-4" width="120px" style="margin-top: -20px;" alt="">
-            <h2 class="mb-4">Monitoring Kendaraan</h2>
+        <div class="text-center" style="margin-top: -20px;">
+            <img src="img/fln-logo.png" width="120px" alt="">
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Monitoring Kendaraan</h2>
+            <span style="white-space: nowrap;">
+                {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+            </span>
         </div>
 
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Tanggal</th>
+                    <th>#</th>
                     <th>Nama Mobil</th>
                     <th width="100">Gambar</th>
                     <th>No Polisi</th>
@@ -34,7 +40,7 @@
                 @foreach($kendaraan as $k)
                 <tr>
                     <td>
-                        {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                        {{ $loop->iteration }}
                     </td>
                     <td>{{ $k->nama_mobil }}</td>
                     <td>
@@ -42,13 +48,19 @@
                     </td>
                     <td>{{ $k->nopol }}</td>
                     <td>
+                        @php
+                        $jam = \Illuminate\Support\Carbon::parse($k->updated_at)->timezone('Asia/Jakarta')->format('H:i');
+                        @endphp
+
                         @if($k->status == 'Stand By')
                         <span class="badge bg-success">Stand By</span>
+                        Jam {{ $jam }}
                         @elseif($k->status == 'Pergi')
                         <span class="badge bg-warning">Pergi</span>
-                        Jam {{ \Illuminate\Support\Carbon::parse($k->updated_at)->timezone('Asia/Jakarta')->format('H:i') }}
+                        Jam {{ $jam }}
                         @elseif($k->status == 'Perbaikan')
                         <span class="badge bg-danger">Perbaikan</span>
+                        Jam {{ $jam }}
                         @else
                         <span class="badge bg-secondary">Status Tidak Dikenal</span>
                         @endif
@@ -72,40 +84,44 @@
                 , success: function(response) {
                     let tableBody = $('#kendaraanTable');
                     tableBody.empty();
-                    response.forEach(function(k) {
+
+                    response.forEach(function(k, index) {
 
                         let statusBadge = '';
 
+                        const jam = new Date(k.updated_at).toLocaleTimeString('id-ID', {
+                            hour: '2-digit'
+                            , minute: '2-digit'
+                            , timeZone: 'Asia/Jakarta'
+                        });
+
                         if (k.status === 'Stand By') {
-                            statusBadge = `<span class="badge bg-success">Stand By</span>`;
+                            statusBadge = `<span class="badge bg-success">Stand By</span> Jam ${jam}`;
                         } else if (k.status === 'Pergi') {
-                            const jam = new Date(k.updated_at).toLocaleTimeString('id-ID', {
-                                hour: '2-digit'
-                                , minute: '2-digit'
-                            });
                             statusBadge = `<span class="badge bg-warning">Pergi</span> Jam ${jam}`;
                         } else if (k.status === 'Perbaikan') {
-                            statusBadge = `<span class="badge bg-danger">Perbaikan</span>`;
+                            statusBadge = `<span class="badge bg-danger">Perbaikan</span> Jam ${jam}`;
                         } else {
                             throw new Error(`Status tidak dikenal: ${k.status}`);
                         }
 
-
-
                         let row = `
-                            <tr>
-                                <td>${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</td>
-                                <td>${k.nama_mobil}</td>
-                                <td><img src="${k.image_path}" style="height: 100px; width: 100px; object-fit: cover;"></td>
-                                <td>${k.nopol}</td>
-                                <td>${statusBadge}</td>
-                                <td>${(k.nama_pemakai && k.departemen) ? `${k.nama_pemakai}<br>${k.departemen}` : '-'}</td>
-                                <td>${k.driver || '-'}</td>
-                                <td>${k.tujuan || '-'}</td>
-                                <td>${k.keterangan || '-'}</td>
-                            </tr>`;
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${k.nama_mobil}</td>
+                        <td><img src="${k.image_path}" style="height: 100px; width: 100px; object-fit: cover;"></td>
+                        <td>${k.nopol}</td>
+                        <td>${statusBadge}</td>
+                        <td>${(k.nama_pemakai && k.departemen) ? `${k.nama_pemakai}<br>${k.departemen}` : '-'}</td>
+                        <td>${k.driver || '-'}</td>
+                        <td>${k.tujuan || '-'}</td>
+                        <td>${k.keterangan || '-'}</td>
+                    </tr>
+                    `;
+
                         tableBody.append(row);
                     });
+
                 }
                 , error: function() {
                     console.log('Gagal mengambil data.');
