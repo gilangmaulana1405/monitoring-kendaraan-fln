@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\KendaraanController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\KendaraanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,10 +16,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('/monitoring-kendaraan');
+    return redirect('/login');
 });
+
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 
-Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
-Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
-Route::put('/kendaraan/update', [KendaraanController::class, 'update']);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
+    Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
+    Route::put('/kendaraan/update', [KendaraanController::class, 'update']);
+});
+
+// login
+Route::get('/login', [LoginController::class, 'index'])->name('login'); 
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+
+

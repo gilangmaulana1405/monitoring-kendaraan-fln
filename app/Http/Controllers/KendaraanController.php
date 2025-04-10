@@ -133,6 +133,7 @@ class KendaraanController extends Controller
             $kendaraan->keterangan = null;
         }
 
+        $kendaraan->updated_at = now();
         $kendaraan->save();
 
         return response()->json([

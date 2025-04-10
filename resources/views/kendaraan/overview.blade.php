@@ -12,14 +12,22 @@
 <body>
     <div class="container mt-5">
         <div class="row align-items-center">
-            <div class="col-12 col-md-4 d-flex flex-column align-items-center align-items-md-start">
-                <h2 class="mb-2">
-                    <img src="img/fln-logo.png" width="120px" alt="">
-                </h2>
+            {{-- Judul di kiri --}}
+            <div class="col-12 col-md-4 text-start mt-3 mt-md-0">
+                <h2 class="mt-0">List Kendaraan Operasional</h2>
             </div>
 
-            <div class="col-12 col-md-5 ms-md-auto text-center text-md-end mt-3 mt-md-0">
-                <h2 class="mt-0">List Kendaraan Operasional</h2>
+            {{-- Logo di tengah --}}
+            <div class="col-12 col-md-4 text-center">
+                <img src="img/fln-logo.png" width="120px" alt="" class="my-2">
+            </div>
+
+            {{-- Tombol logout di kanan --}}
+            <div class="col-12 col-md-4 text-end">
+                <form action="{{ route('logout') }}" method="POST" class="mt-2 d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-danger">Logout</button>
+                </form>
             </div>
         </div>
 
