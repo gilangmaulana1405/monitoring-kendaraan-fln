@@ -78,6 +78,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
+                            <div class="alert alert-danger d-none error-message-box"></div>
                             <form class="updateForm" data-id="{{ $k->id }}">
                                 @csrf
                                 @method('PUT')
@@ -163,8 +164,25 @@
             document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
-                    let formData = new FormData(this);
-                    let id = this.dataset.id;
+
+                    let status = form.querySelector("select[name='status']").value;
+
+                    if (status === "Pergi") {
+                        let nama = form.querySelector("input[name='nama_pemakai']").value.trim();
+                        let departemen = form.querySelector("select[name='departemen']").value.trim();
+                        let driver = form.querySelector("select[name='driver']").value.trim();
+                        let tujuan = form.querySelector("input[name='tujuan']").value.trim();
+
+                        if (!nama || !departemen || !driver || !tujuan) {
+                            alert("Data masih ada yang kosong dan harus diisi!");
+                            return;
+                        }
+                    }
+
+                    // Proses fetch
+                    let formData = new FormData(form);
+                    let id = form.dataset.id;
+
                     fetch("/kendaraan/update", {
                             method: "POST"
                             , body: formData
@@ -176,34 +194,10 @@
                         .then(data => {
                             if (data.success) {
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
-
                                 setTimeout(() => {
                                     document.getElementById("alertBox").innerHTML = "";
                                     location.reload();
                                 }, 3000);
-
-                                let card = document.querySelector(`.kendaraan-card[data-id='${id}']`);
-                                let status = formData.get("status");
-                                let color = {
-                                    "Stand By": "success"
-                                    , "Pergi": "warning"
-                                    , "Perbaikan": "danger"
-                                } [status] || "secondary";
-
-                                let badge = card.querySelector(".status-badge");
-                                if (badge) {
-                                    badge.textContent = status;
-                                    badge.className = `badge bg-${color} mb-1 status-badge`;
-                                }
-
-                                let waktu = card.querySelector(".waktu-update");
-                                if (waktu) {
-                                    waktu.textContent = "Baru saja diperbarui";
-                                    waktu.classList.add("mt-1", "d-block");
-                                }
-
-                                let modalElement = document.getElementById("modal" + id);
-                                bootstrap.Modal.getInstance(modalElement).hide();
                             }
                         })
                         .catch(error => console.error("Error:", error));

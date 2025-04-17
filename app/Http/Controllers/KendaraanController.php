@@ -40,42 +40,42 @@ class KendaraanController extends Controller
     public function getData()
     {
         $kendaraan = Kendaraan::all()->map(function ($k) {
-        $imgPath = public_path('img/');
-        $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-        $image = 'img/default.png';
+            $imgPath = public_path('img/');
+            $extensions = ['jpeg', 'jpg', 'png', 'webp'];
+            $image = 'img/default.png';
 
-        foreach ($extensions as $ext) {
-            if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
-                $image = 'img/' . $k->nopol . '.' . $ext;
-                break;
+            foreach ($extensions as $ext) {
+                if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
+                    $image = 'img/' . $k->nopol . '.' . $ext;
+                    break;
+                }
             }
-        }
 
-        return [
-            'nama_mobil'    => $k->nama_mobil,
-            'image_path'    => asset($image),
-            'nopol'         => $k->nopol,
-            'status'        => $k->status,
-            'nama_pemakai'  => $k->nama_pemakai,
-            'departemen'    => $k->departemen,
-            'driver'        => $k->driver,
-            'tujuan'        => $k->tujuan,
-            'keterangan'    => $k->keterangan,
-            'updated_at'    => Carbon::parse($k->updated_at)
-                                ->timezone('Asia/Jakarta')
-                                ->toIso8601String(),
-        ];
-    })->sortBy(function ($item) {
-        return match ($item['status']) {
-            'Stand By'  => 1,
-            'Pergi'     => 2,
-            'Perbaikan' => 3,
-            default     => 4,
-        };
-    })->values();
+            return [
+                'nama_mobil'    => $k->nama_mobil,
+                'image_path'    => asset($image),
+                'nopol'         => $k->nopol,
+                'status'        => $k->status,
+                'nama_pemakai'  => $k->nama_pemakai,
+                'departemen'    => $k->departemen,
+                'driver'        => $k->driver,
+                'tujuan'        => $k->tujuan,
+                'keterangan'    => $k->keterangan,
+                'updated_at'    => Carbon::parse($k->updated_at)
+                    ->timezone('Asia/Jakarta')
+                    ->toIso8601String(),
+            ];
+        })->sortBy(function ($item) {
+            return match ($item['status']) {
+                'Stand By'  => 1,
+                'Pergi'     => 2,
+                'Perbaikan' => 3,
+                default     => 4,
+            };
+        })->values();
 
-    
-    return response()->json($kendaraan);
+
+        return response()->json($kendaraan);
     }
 
     // list kendaraan untuk update data
@@ -108,20 +108,27 @@ class KendaraanController extends Controller
 
     public function update(Request $request)
     {
-        $request->validate([
+        // Validasi dasar
+        $rules = [
             'status' => 'required|string',
-            'nama_pemakai' => 'nullable|string',
-            'departemen' => 'nullable|string',
-            'tujuan' => 'nullable|string',
-        ]);
+        ];
+
+        // Jika status "Pergi", tambahkan validasi wajib isi
+        if ($request->status === 'Pergi') {
+            $rules['nama_pemakai'] = 'required|string';
+            $rules['departemen'] = 'required|string';
+            $rules['driver'] = 'required|string';
+            $rules['tujuan'] = 'required|string';
+        }
+
+        $request->validate($rules);
 
         $kendaraan = Kendaraan::findOrFail($request->id);
         $kendaraan->status = $request->status;
-        $kendaraan->nama_pemakai = $request->nama_pemakai;
-        $kendaraan->departemen = $request->departemen;
 
-        // Simpan tujuan hanya jika status "Pergi"
-        if ($request->status == "Pergi") {
+        if ($request->status === 'Pergi') {
+            $kendaraan->nama_pemakai = $request->nama_pemakai;
+            $kendaraan->departemen = $request->departemen;
             $kendaraan->driver = $request->driver;
             $kendaraan->tujuan = $request->tujuan;
             $kendaraan->keterangan = $request->keterangan;
@@ -141,4 +148,41 @@ class KendaraanController extends Controller
             'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!"
         ]);
     }
+
+
+    // public function update(Request $request)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|string',
+    //         'nama_pemakai' => 'nullable|string',
+    //         'departemen' => 'nullable|string',
+    //         'tujuan' => 'nullable|string',
+    //     ]);
+
+    //     $kendaraan = Kendaraan::findOrFail($request->id);
+    //     $kendaraan->status = $request->status;
+    //     $kendaraan->nama_pemakai = $request->nama_pemakai;
+    //     $kendaraan->departemen = $request->departemen;
+
+    //     // Simpan tujuan hanya jika status "Pergi"
+    //     if ($request->status == "Pergi") {
+    //         $kendaraan->driver = $request->driver;
+    //         $kendaraan->tujuan = $request->tujuan;
+    //         $kendaraan->keterangan = $request->keterangan;
+    //     } else {
+    //         $kendaraan->nama_pemakai = null;
+    //         $kendaraan->departemen = null;
+    //         $kendaraan->driver = null;
+    //         $kendaraan->tujuan = null;
+    //         $kendaraan->keterangan = null;
+    //     }
+
+    //     $kendaraan->updated_at = now();
+    //     $kendaraan->save();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!"
+    //     ]);
+    // }
 }
