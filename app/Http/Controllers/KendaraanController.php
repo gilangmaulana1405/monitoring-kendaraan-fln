@@ -5,34 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\Kendaraan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\HistoryKendaraan;
 use Illuminate\Support\Facades\File;
 
 class KendaraanController extends Controller
 {
 
-    // monitoring kendaraan
-    public function index()
+    // menampilkan gambar
+    private function getImagePath($nopol)
     {
-        $kendaraan = Kendaraan::all()->map(function ($k) {
-            $imgPath = public_path('img/');
-            $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-            $image = 'img/default.png';
+        $imgPath = public_path('img/');
+        $extensions = ['jpeg', 'jpg', 'png', 'webp'];
+        $image = 'img/default.png';
 
-            foreach ($extensions as $ext) {
-                if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
-                    $image = 'img/' . $k->nopol . '.' . $ext;
-                    break;
-                }
+        foreach ($extensions as $ext) {
+            if (File::exists($imgPath . $nopol . '.' . $ext)) {
+                $image = 'img/' . $nopol . '.' . $ext;
+                break;
             }
-            $k->image_path = $image;
-            return $k;
-        })->sortBy(function ($item) {
+        }
+
+        return $image;
+    }
+
+    // sort by status
+    private function sortByStatus($kendaraan)
+    {
+        return $kendaraan->sortBy(function ($item) {
             return match ($item->status) {
                 'Stand By'  => 1,
                 'Pergi'     => 2,
                 'Perbaikan' => 3,
+                default     => 4,
             };
         })->values();
+    }
+    // monitoring kendaraan di halaman user
+    public function index()
+    {
+        $kendaraan = Kendaraan::all()->map(function ($k) {
+            $k->image_path = $this->getImagePath($k->nopol);
+            return $k;
+        });
+
+        $kendaraan = $this->sortByStatus($kendaraan);
 
         return view('kendaraan.index', compact('kendaraan'));
     }
@@ -40,17 +56,7 @@ class KendaraanController extends Controller
     public function getData()
     {
         $kendaraan = Kendaraan::all()->map(function ($k) {
-            $imgPath = public_path('img/');
-            $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-            $image = 'img/default.png';
-
-            foreach ($extensions as $ext) {
-                if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
-                    $image = 'img/' . $k->nopol . '.' . $ext;
-                    break;
-                }
-            }
-
+            $image = $this->getImagePath($k->nopol);
             return [
                 'nama_mobil'    => $k->nama_mobil,
                 'image_path'    => asset($image),
@@ -65,124 +71,114 @@ class KendaraanController extends Controller
                     ->timezone('Asia/Jakarta')
                     ->toIso8601String(),
             ];
-        })->sortBy(function ($item) {
-            return match ($item['status']) {
-                'Stand By'  => 1,
-                'Pergi'     => 2,
-                'Perbaikan' => 3,
-                default     => 4,
-            };
-        })->values();
+        });
 
+        $kendaraan = $this->sortByStatus($kendaraan);
 
         return response()->json($kendaraan);
     }
 
-    // list kendaraan untuk update data
+    // List kendaraan untuk update data
     public function kendaraan()
     {
         $kendaraan = Kendaraan::all()->map(function ($k) {
-            $imgPath = public_path('img/');
-            $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-            $image = 'img/default.png';
-
-            foreach ($extensions as $ext) {
-                if (File::exists($imgPath . $k->nopol . '.' . $ext)) {
-                    $image = 'img/' . $k->nopol . '.' . $ext;
-                    break;
-                }
-            }
-
-            $k->image_path = $image;
+            $k->image_path = $this->getImagePath($k->nopol);
             return $k;
-        })->sortBy(function ($item) {
-            return match ($item->status) {
-                'Stand By'  => 1,
-                'Pergi'     => 2,
-                'Perbaikan' => 3,
-            };
-        })->values();;
+        });
+
+        $kendaraan = $this->sortByStatus($kendaraan);
 
         return view('kendaraan.overview', compact('kendaraan'));
     }
 
     public function update(Request $request)
-    {
-        // Validasi dasar
-        $rules = [
-            'status' => 'required|string',
-        ];
+{
+    $rules = [
+        'status' => 'required|string',
+    ];
 
-        // Jika status "Pergi", tambahkan validasi wajib isi
-        if ($request->status === 'Pergi') {
-            $rules['nama_pemakai'] = 'required|string';
-            $rules['departemen'] = 'required|string';
-            $rules['driver'] = 'required|string';
-            $rules['tujuan'] = 'required|string';
-        }
-
-        $request->validate($rules);
-
-        $kendaraan = Kendaraan::findOrFail($request->id);
-        $kendaraan->status = $request->status;
-
-        if ($request->status === 'Pergi') {
-            $kendaraan->nama_pemakai = $request->nama_pemakai;
-            $kendaraan->departemen = $request->departemen;
-            $kendaraan->driver = $request->driver;
-            $kendaraan->tujuan = $request->tujuan;
-            $kendaraan->keterangan = $request->keterangan;
-        } else {
-            $kendaraan->nama_pemakai = null;
-            $kendaraan->departemen = null;
-            $kendaraan->driver = null;
-            $kendaraan->tujuan = null;
-            $kendaraan->keterangan = null;
-        }
-
-        $kendaraan->updated_at = now();
-        $kendaraan->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!"
-        ]);
+    // Tambahkan validasi, tapi izinkan nullable karena bisa auto-isi dari data sebelumnya
+    if ($request->status === 'Pergi') {
+        $rules['nama_pemakai'] = 'nullable|string';
+        $rules['departemen'] = 'nullable|string';
+        $rules['driver'] = 'nullable|string';
+        $rules['tujuan'] = 'nullable|string';
+        $rules['keterangan'] = 'nullable|string';
     }
 
+    $request->validate($rules);
 
-    // public function update(Request $request)
-    // {
-    //     $request->validate([
-    //         'status' => 'required|string',
-    //         'nama_pemakai' => 'nullable|string',
-    //         'departemen' => 'nullable|string',
-    //         'tujuan' => 'nullable|string',
-    //     ]);
+    $kendaraan = Kendaraan::findOrFail($request->id);
 
-    //     $kendaraan = Kendaraan::findOrFail($request->id);
-    //     $kendaraan->status = $request->status;
-    //     $kendaraan->nama_pemakai = $request->nama_pemakai;
-    //     $kendaraan->departemen = $request->departemen;
+    // Ambil data history terakhir sebelum kendaraan jadi "Stand By"
+    $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
+        ->where('status', 'Pergi')
+        ->latest()
+        ->first();
 
-    //     // Simpan tujuan hanya jika status "Pergi"
-    //     if ($request->status == "Pergi") {
-    //         $kendaraan->driver = $request->driver;
-    //         $kendaraan->tujuan = $request->tujuan;
-    //         $kendaraan->keterangan = $request->keterangan;
-    //     } else {
-    //         $kendaraan->nama_pemakai = null;
-    //         $kendaraan->departemen = null;
-    //         $kendaraan->driver = null;
-    //         $kendaraan->tujuan = null;
-    //         $kendaraan->keterangan = null;
-    //     }
+    // Isi nilai dari request atau dari data sebelumnya (kendaraan/history)
+    $namaPemakai = $request->nama_pemakai 
+        ?? $kendaraan->nama_pemakai 
+        ?? $lastPergi?->nama_pemakai;
 
-    //     $kendaraan->updated_at = now();
-    //     $kendaraan->save();
+    $departemen = $request->departemen 
+        ?? $kendaraan->departemen 
+        ?? $lastPergi?->departemen;
 
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!"
-    //     ]);
-    // }
+    $driver = $request->driver 
+        ?? $kendaraan->driver 
+        ?? $lastPergi?->driver;
+
+    $tujuan = $request->tujuan 
+        ?? $kendaraan->tujuan 
+        ?? $lastPergi?->tujuan;
+
+    $keterangan = $request->keterangan 
+        ?? $kendaraan->keterangan 
+        ?? $lastPergi?->keterangan;
+
+    // Simpan ke history sebelum update
+    HistoryKendaraan::create([
+        'kendaraan_id' => $kendaraan->id,
+        'status' => $request->status,
+        'nama_mobil' => $request->nama_mobil,
+        'nopol' => $request->nopol,
+        'nama_pemakai' => $namaPemakai,
+        'departemen' => $departemen,
+        'driver' => $driver,
+        'tujuan' => $tujuan,
+        'keterangan' => $keterangan,
+        'pic_update' => auth()->user()->username,
+    ]);
+
+    $kendaraan->status = $request->status;
+
+    if ($request->status === 'Pergi') {
+        // Isi data jika status Pergi
+        $kendaraan->nama_pemakai = $namaPemakai;
+        $kendaraan->departemen = $departemen;
+        $kendaraan->driver = $driver;
+        $kendaraan->tujuan = $tujuan;
+        $kendaraan->keterangan = $keterangan;
+    } else {
+        // Reset semua jika Stand By
+        $kendaraan->nama_pemakai = null;
+        $kendaraan->departemen = null;
+        $kendaraan->driver = null;
+        $kendaraan->tujuan = null;
+        $kendaraan->keterangan = null;
+    }
+
+    $kendaraan->updated_at = now();
+    $kendaraan->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
+        'status' => $kendaraan->status,
+    ]);
 }
+}
+
+
+   

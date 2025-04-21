@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Monitoring Kendaraan</title>
+    <title>List Kendaraan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -24,15 +24,18 @@
 
             {{-- Tombol logout di kanan --}}
             <div class="col-12 col-md-4 text-end">
-                <form action="{{ route('logout') }}" method="POST" class="mt-2 d-inline">
+                <div class="text-muted small mt-2">
+                    Selamat datang, <strong>{{ auth()->user()->username }}</strong>
+                </div>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-danger">Logout</button>
+                    <button type="submit" class="btn btn-sm btn-danger mt-1">Logout</button>
                 </form>
             </div>
         </div>
 
         <div id="alertBox"></div>
-        <div class="row" id="kendaraanList">
+        <div class="row">
             @foreach($kendaraan as $k)
             <div class="col-md-4 mb-4 kendaraan-card" data-id="{{ $k->id }}">
                 <div class="card">
@@ -51,6 +54,7 @@
                         default => throw new \Exception('Status tidak dikenal: ' . $k->status),
                         };
                         @endphp
+
 
                         <div class="position-absolute bottom-0 end-0 text-end m-2">
                             <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
@@ -83,6 +87,10 @@
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="id" value="{{ $k->id }}">
+
+                                <label class="form-label">Kendaraan</label>
+                                <input type="text" class="form-control" name="nama_mobil" value="{{ $k->nama_mobil }}" readonly style="background-color: #e9ecef; pointer-events: none;">
+                                <input type="text" class="form-control mt-2" name="nopol" value="{{ $k->nopol }}" readonly style="background-color: #e9ecef; pointer-events: none;">
 
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select statusSelect" data-id="{{ $k->id }}">
@@ -168,6 +176,8 @@
                     let status = form.querySelector("select[name='status']").value;
 
                     if (status === "Pergi") {
+                        let mobil = form.querySelector("input[name='nama_mobil']").value.trim();
+                        let nopol = form.querySelector("input[name='nopol']").value.trim();
                         let nama = form.querySelector("input[name='nama_pemakai']").value.trim();
                         let departemen = form.querySelector("select[name='departemen']").value.trim();
                         let driver = form.querySelector("select[name='driver']").value.trim();
@@ -196,8 +206,32 @@
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
                                 setTimeout(() => {
                                     document.getElementById("alertBox").innerHTML = "";
-                                    location.reload();
+
+                                    let card = document.querySelector(`[data-id='${id}']`);
+                                    const badge = card.querySelector(".status-badge");
+                                    badge.textContent = data.status;
+
+                                    // Hapus semua kelas warna lama
+                                    badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+
+                                    // Tambahkan class baru sesuai status
+                                    switch (data.status) {
+                                        case "Stand By":
+                                            badge.classList.add("bg-success");
+                                            break;
+                                        case "Pergi":
+                                            badge.classList.add("bg-warning");
+                                            break;
+                                        case "Perbaikan":
+                                            badge.classList.add("bg-danger");
+                                            break;
+                                    }
                                 }, 3000);
+
+                                let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
+                                modal.hide();
+                            } else {
+                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, coba lagi.</div>`;
                             }
                         })
                         .catch(error => console.error("Error:", error));

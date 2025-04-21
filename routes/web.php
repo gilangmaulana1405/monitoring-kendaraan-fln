@@ -24,7 +24,7 @@ Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 Route::middleware(['auth'])->group(function () {
     Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
     Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
-    Route::put('/kendaraan/update', [KendaraanController::class, 'update']);
+    Route::put('/kendaraan/update', [KendaraanController::class, 'update'])->name('kendaraan.update');
 });
 
 // login
