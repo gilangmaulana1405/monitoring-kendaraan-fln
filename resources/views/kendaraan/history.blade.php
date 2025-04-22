@@ -12,7 +12,6 @@
 
 <body>
     <div class="container mt-5">
-
         <div class="text-center" style="margin-top: -20px;">
             <img src="img/fln-logo.png" width="120px" alt="">
         </div>
@@ -23,26 +22,25 @@
                 {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
             </span>
         </div>
-    </div>
 
-    <div class="table-responsive">
-        <table id="history-table" class="display" style="width:100%">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Tanggal Update</th> <!-- Pindahkan kolom updated_at ke sini -->
-                    <th>Nama Mobil</th>
-                    <th>No. Polisi</th>
-                    <th>Status</th>
-                    <th>Nama Pemakai</th>
-                    <th>Departemen</th>
-                    <th>Driver</th>
-                    <th>Tujuan</th>
-                    <th>Keterangan</th>
-                    <th>PIC Update</th>
-                </tr>
-            </thead>
-        </table>
+        <div class="table-responsive">
+            <table id="history-table" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal Update</th>
+                        <th>Jam</th>
+                        <th>Mobil</th>
+                        <th>Status</th>
+                        <th>Pemakai</th>
+                        <th>Driver</th>
+                        <th>Tujuan</th>
+                        <th>Keterangan</th>
+                        <th>PIC Update</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
 
     <!-- DataTables JS -->
@@ -50,81 +48,106 @@
 
     <script>
         $(document).ready(function() {
-            $.ajax({
-                url: "{{ route('history.kendaraan.data') }}"
-                , type: 'GET'
-                , dataType: 'json'
-                , success: function(data) {
-                    let tableData = [];
-                    $.each(data, function(i, item) {
+            // Function to fetch data and update table
+            function fetchData() {
+                $.ajax({
+                    url: "{{ route('history.kendaraan.data') }}", // URL endpoint untuk mengambil data history
+                    type: 'GET'
+                    , dataType: 'json'
+                    , success: function(data) {
+                        let tableData = [];
+                        $.each(data, function(i, item) {
+                            // Konversi Tanggal
+                            const date = new Date(item.updated_at);
+                            const tanggalUpdate = new Intl.DateTimeFormat('id-ID', {
+                                weekday: 'long'
+                                , day: '2-digit'
+                                , month: 'long'
+                                , year: 'numeric'
+                            }).format(date);
 
-                        // konversi Tanggal
-                        const date = new Date(item.updated_at);
-                        const options = {
-                            weekday: 'long'
-                            , day: '2-digit'
-                            , month: 'long'
-                            , year: 'numeric'
-                            , locale: 'id-ID'
-                        };
-                        const formattedDate = new Intl.DateTimeFormat('id-ID', options).format(date);
+                            // Format jam
+                            const jamUpdate = date.toLocaleTimeString('id-ID', {
+                                hour: '2-digit'
+                                , minute: '2-digit'
+                                , hour12: false
+                            });
 
+                            // Warnai badge status
+                            let statusBadge = '';
+                            switch (item.status.toLowerCase()) {
+                                case 'stand by':
+                                    statusBadge = '<span class="badge bg-success">Stand By</span>';
+                                    break;
+                                case 'pergi':
+                                    statusBadge = '<span class="badge bg-warning text-dark">Pergi</span>';
+                                    break;
+                                case 'perbaikan':
+                                    statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
+                                    break;
+                                default:
+                                    statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+                                    break;
+                            }
 
-                        tableData.push([
-                            i + 1
-                            , formattedDate
-                            , item.nama_mobil
-                            , item.nopol
-                            , item.status
-                            , item.nama_pemakai
-                            , item.departemen
-                            , item.driver
-                            , item.tujuan
-                            , item.keterangan
-                            , item.pic_update
-                        ]);
-                    });
+                            tableData.push([
+                                i + 1
+                                , tanggalUpdate
+                                , jamUpdate
+                                , item.mobil
+                                , statusBadge
+                                , item.pemakai
+                                , item.driver
+                                , item.tujuan
+                                , item.keterangan
+                                , item.pic_update
+                            ]);
+                        });
 
-                    $('#history-table').DataTable({
-                        data: tableData
-                        , columns: [{
-                                title: "No"
-                            }
-                            , {
-                                title: "Tanggal Update"
-                            }, // Kolom "Tanggal Update"
-                            {
-                                title: "Nama Mobil"
-                            }
-                            , {
-                                title: "No. Polisi"
-                            }
-                            , {
-                                title: "Status"
-                            }
-                            , {
-                                title: "Nama Pemakai"
-                            }
-                            , {
-                                title: "Departemen"
-                            }
-                            , {
-                                title: "Driver"
-                            }
-                            , {
-                                title: "Tujuan"
-                            }
-                            , {
-                                title: "Keterangan"
-                            }
-                            , {
-                                title: "PIC Update"
-                            }
-                        , ]
-                        , pageLength: 10
-                    , });
-                }
+                        // Update DataTable with new data
+                        $('#history-table').DataTable().clear().rows.add(tableData).draw();
+                    }
+                });
+            }
+
+            // Initialize DataTable
+            $('#history-table').DataTable({
+                columns: [{
+                        title: "No"
+                    }
+                    , {
+                        title: "Tanggal Update"
+                    }
+                    , {
+                        title: "Jam Update"
+                    }
+                    , {
+                        title: "Mobil"
+                    }
+                    , {
+                        title: "Status"
+                    }
+                    , {
+                        title: "Pemakai"
+                    }
+                    , {
+                        title: "Driver"
+                    }
+                    , {
+                        title: "Tujuan"
+                    }
+                    , {
+                        title: "Keterangan"
+                    }
+                    , {
+                        title: "PIC Update"
+                    }
+                ]
+                , pageLength: 10
             });
+
+            // Fetch data every 5 seconds
+            setInterval(fetchData, 5000);
         });
 
     </script>
