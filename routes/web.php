@@ -21,7 +21,12 @@ Route::get('/', function () {
 
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 
+// history
+Route::get('/history-kendaraan', [KendaraanController::class, 'historyKendaraan'])->name('history.kendaraan');
+Route::get('/get-data-history-kendaraan', [KendaraanController::class, 'getDatahistoryKendaraan'])->name('history.kendaraan.data');
+
 Route::middleware(['auth'])->group(function () {
+    // inputan kendaraan
     Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
     Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
     Route::put('/kendaraan/update', [KendaraanController::class, 'update'])->name('kendaraan.update');

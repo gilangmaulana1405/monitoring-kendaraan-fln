@@ -104,7 +104,7 @@
                         } else {
                             throw new Error(`Status tidak dikenal: ${k.status}`);
                         }
-
+        
                         let row = `
                     <tr>
                         <td>${index + 1}</td>

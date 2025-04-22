@@ -226,6 +226,7 @@
                                             badge.classList.add("bg-danger");
                                             break;
                                     }
+                                    location.reload();
                                 }, 3000);
 
                                 let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
