@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('history_kendaraans', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade'); // foreign key ke kendaraan
-        $table->string('nama_mobil');
-        $table->string('nopol');
-        $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
-        $table->string('nama_pemakai')->nullable();
-        $table->string('departemen')->nullable();
-        $table->string('driver')->nullable();
-        $table->text('tujuan')->nullable();
-        $table->string('keterangan')->nullable();
-        $table->string('pic_update')->nullable(); 
-        $table->timestamps();
-    });
+        Schema::create('history_kendaraans', function (Blueprint $table) {
+            $table->uuid('id')->primary(); // Ganti id auto-increment menjadi uuid
+            $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade');
+            $table->string('nama_mobil');
+            $table->string('nopol');
+            $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
+            $table->string('nama_pemakai')->nullable();
+            $table->string('departemen')->nullable();
+            $table->string('driver')->nullable();
+            $table->text('tujuan')->nullable();
+            $table->string('keterangan')->nullable();
+            $table->string('pic_update')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**

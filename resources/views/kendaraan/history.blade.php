@@ -32,6 +32,7 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>Id History</th>
                         <th>Tanggal Update</th>
                         <th>Jam</th>
                         <th>Mobil</th>
@@ -55,6 +56,9 @@
             const table = $('#history-table').DataTable({
                 columns: [{
                         title: "No"
+                    }
+                    , {
+                        title: "Id History"
                     }
                     , {
                         title: "Tanggal Update"
@@ -134,6 +138,7 @@
 
                             tableData.push([
                                 i + 1
+                                , item.id
                                 , tanggalUpdate
                                 , jamUpdate
                                 , item.mobil
