@@ -101,7 +101,11 @@ class KendaraanController extends Controller
         if ($request->status === 'Pergi') {
             $rules['nama_pemakai'] = 'nullable|string';
             $rules['departemen'] = 'nullable|string';
-            $rules['driver'] = 'nullable|string';
+            $rules['driver'] = 'required|string';
+            if ($request->driver === 'Lain-lain') {
+                $rules['driver_lain'] = 'required|string';
+            }
+
             $rules['tujuan'] = 'nullable|string';
             $rules['keterangan'] = 'nullable|string';
         }
@@ -120,7 +124,11 @@ class KendaraanController extends Controller
             // Pake request atau fallback ke data sebelumnya
             $namaPemakai = $request->nama_pemakai ?? $kendaraan->nama_pemakai ?? $lastPergi?->nama_pemakai;
             $departemen = $request->departemen ?? $kendaraan->departemen ?? $lastPergi?->departemen;
-            $driver = $request->driver ?? $kendaraan->driver ?? $lastPergi?->driver;
+
+            $driver = $request->driver === 'Lain-lain'
+                ? ($request->driver_lain ?? $kendaraan->driver ?? $lastPergi?->driver)
+                : ($request->driver ?? $kendaraan->driver ?? $lastPergi?->driver);
+
             $tujuan = $request->tujuan ?? $kendaraan->tujuan ?? $lastPergi?->tujuan;
             $keterangan = $request->keterangan ?? $kendaraan->keterangan ?? $lastPergi?->keterangan;
         } else {

@@ -23,6 +23,10 @@
             </span>
         </div>
 
+        <div id="loading" style="text-align: center; margin: 30px 0; display: none;">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        </div>
+
         <div class="table-responsive">
             <table id="history-table" class="display" style="width:100%">
                 <thead>
@@ -48,70 +52,7 @@
 
     <script>
         $(document).ready(function() {
-            // Function to fetch data and update table
-            function fetchData() {
-                $.ajax({
-                    url: "{{ route('history.kendaraan.data') }}", // URL endpoint untuk mengambil data history
-                    type: 'GET'
-                    , dataType: 'json'
-                    , success: function(data) {
-                        let tableData = [];
-                        $.each(data, function(i, item) {
-                            // Konversi Tanggal
-                            const date = new Date(item.updated_at);
-                            const tanggalUpdate = new Intl.DateTimeFormat('id-ID', {
-                                weekday: 'long'
-                                , day: '2-digit'
-                                , month: 'long'
-                                , year: 'numeric'
-                            }).format(date);
-
-                            // Format jam
-                            const jamUpdate = date.toLocaleTimeString('id-ID', {
-                                hour: '2-digit'
-                                , minute: '2-digit'
-                                , hour12: false
-                            });
-
-                            // Warnai badge status
-                            let statusBadge = '';
-                            switch (item.status.toLowerCase()) {
-                                case 'stand by':
-                                    statusBadge = '<span class="badge bg-success">Stand By</span>';
-                                    break;
-                                case 'pergi':
-                                    statusBadge = '<span class="badge bg-warning text-dark">Pergi</span>';
-                                    break;
-                                case 'perbaikan':
-                                    statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
-                                    break;
-                                default:
-                                    statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
-                                    break;
-                            }
-
-                            tableData.push([
-                                i + 1
-                                , tanggalUpdate
-                                , jamUpdate
-                                , item.mobil
-                                , statusBadge
-                                , item.pemakai
-                                , item.driver
-                                , item.tujuan
-                                , item.keterangan
-                                , item.pic_update
-                            ]);
-                        });
-
-                        // Update DataTable with new data
-                        $('#history-table').DataTable().clear().rows.add(tableData).draw();
-                    }
-                });
-            }
-
-            // Initialize DataTable
-            $('#history-table').DataTable({
+            const table = $('#history-table').DataTable({
                 columns: [{
                         title: "No"
                     }
@@ -146,11 +87,82 @@
                 , pageLength: 10
             });
 
-            // Fetch data every 5 seconds
-            setInterval(fetchData, 5000);
+            let isFirstLoad = true; // Mengatur apakah ini pemuatan pertama kali
+
+            function fetchData() {
+                if (isFirstLoad) {
+                    $('#loading').show(); // Menampilkan spinner hanya saat pemuatan pertama
+                }
+
+                $.ajax({
+                    url: "{{ route('history.kendaraan.data') }}"
+                    , type: 'GET'
+                    , dataType: 'json'
+                    , success: function(data) {
+                        let tableData = [];
+
+                        $.each(data, function(i, item) {
+                            const date = new Date(item.updated_at);
+                            const tanggalUpdate = new Intl.DateTimeFormat('id-ID', {
+                                weekday: 'long'
+                                , day: '2-digit'
+                                , month: 'long'
+                                , year: 'numeric'
+                            }).format(date);
+
+                            const jamUpdate = date.toLocaleTimeString('id-ID', {
+                                hour: '2-digit'
+                                , minute: '2-digit'
+                                , hour12: false
+                            });
+
+                            let statusBadge = '';
+                            switch (item.status.toLowerCase()) {
+                                case 'stand by':
+                                    statusBadge = '<span class="badge bg-success">Stand By</span>';
+                                    break;
+                                case 'pergi':
+                                    statusBadge = '<span class="badge bg-warning text-dark">Pergi</span>';
+                                    break;
+                                case 'perbaikan':
+                                    statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
+                                    break;
+                                default:
+                                    statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+                                    break;
+                            }
+
+                            tableData.push([
+                                i + 1
+                                , tanggalUpdate
+                                , jamUpdate
+                                , item.mobil
+                                , statusBadge
+                                , item.pemakai
+                                , item.driver
+                                , item.tujuan
+                                , item.keterangan
+                                , item.pic_update
+                            ]);
+                        });
+
+                        table.clear().rows.add(tableData).draw();
+                        $('#loading').hide(); // Sembunyikan spinner setelah data selesai dimuat
+
+                        if (isFirstLoad) {
+                            isFirstLoad = false; // Mengatur flag agar spinner tidak muncul di pemuatan berikutnya
+                        }
+                    }
+                    , error: function() {
+                        $('#loading').hide(); // Sembunyikan spinner jika terjadi error
+                    }
+                });
+            }
+
+            fetchData(); // Ambil data pertama kali saat halaman dimuat
+            setInterval(fetchData, 5000); // Ambil data setiap 5 detik tanpa spinner
         });
 
     </script>
-
 </body>
 </html>

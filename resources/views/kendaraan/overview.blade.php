@@ -55,7 +55,6 @@
                         };
                         @endphp
 
-
                         <div class="position-absolute bottom-0 end-0 text-end m-2">
                             <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
                                 {{ $k->status }}
@@ -121,12 +120,14 @@
                                     </select>
 
                                     <label class="form-label">Driver</label>
-                                    <select name="driver" class="form-select">
+                                    <select name="driver" class="form-select driverSelect" data-id="{{ $k->id }}">
                                         <option value="Abas">Abas</option>
                                         <option value="Kosasih">Kosasih</option>
                                         <option value="Rahmat">Rahmat</option>
                                         <option value="Fiki">Fiki</option>
+                                        <option value="Lain-lain">Lain-lain</option>
                                     </select>
+                                    <input type="text" class="form-control mt-2 driverLainInput" name="driver_lain" placeholder="Masukkan nama driver lain" style="display:none;">
 
                                     <label class="form-label">Tujuan *</label>
                                     <input type="text" class="form-control" name="tujuan">
@@ -168,6 +169,27 @@
             }
             // end
 
+            // Tampilkan input 'driver lain' jika pilihannya 'Lain-lain'
+            document.querySelectorAll(".driverSelect").forEach(select => {
+                toggleDriverInput(select);
+                select.addEventListener("change", function() {
+                    toggleDriverInput(this);
+                });
+            });
+
+            function toggleDriverInput(select) {
+                const id = select.dataset.id;
+                const form = select.closest("form");
+                const inputLain = form.querySelector("input[name='driver_lain']");
+
+                if (select.value === "Lain-lain") {
+                    inputLain.style.display = "block";
+                } else {
+                    inputLain.style.display = "none";
+                    inputLain.value = ""; // kosongkan kalau tidak dipakai
+                }
+            }
+
             // form submit
             document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
@@ -180,7 +202,12 @@
                         let nopol = form.querySelector("input[name='nopol']").value.trim();
                         let nama = form.querySelector("input[name='nama_pemakai']").value.trim();
                         let departemen = form.querySelector("select[name='departemen']").value.trim();
-                        let driver = form.querySelector("select[name='driver']").value.trim();
+
+                        let driverSelect = form.querySelector("select[name='driver']").value.trim();
+                        let driver = driverSelect === "Lain-lain" ?
+                            form.querySelector("input[name='driver_lain']").value.trim() :
+                            driverSelect;
+                        
                         let tujuan = form.querySelector("input[name='tujuan']").value.trim();
 
                         if (!nama || !departemen || !driver || !tujuan) {
