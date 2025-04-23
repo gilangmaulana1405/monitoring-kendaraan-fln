@@ -151,7 +151,11 @@
                             ]);
                         });
 
-                        table.clear().rows.add(tableData).draw();
+                        //table.clear().rows.add(tableData).draw();
+                        const currentPage = table.page(); // simpan halaman saat ini
+                        table.clear().rows.add(tableData).draw(false); // false supaya tetap di halaman sekarang
+                        table.page(currentPage).draw(false); // kembali ke halaman sebelumnya
+
                         $('#loading').hide(); // Sembunyikan spinner setelah data selesai dimuat
 
                         if (isFirstLoad) {

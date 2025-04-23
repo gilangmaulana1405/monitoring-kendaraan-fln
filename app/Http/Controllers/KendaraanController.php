@@ -55,7 +55,14 @@ class KendaraanController extends Controller
 
     public function getData()
     {
-        $kendaraan = Kendaraan::all()->map(function ($k) {
+        // Ambil semua data kendaraan (masih berupa objek Eloquent)
+        $kendaraan = Kendaraan::all();
+
+        // Urutkan dulu berdasarkan status (masih object)
+        $kendaraan = $this->sortByStatus($kendaraan);
+
+        // Baru diubah jadi array dan dimodifikasi image path-nya
+        $kendaraan = $kendaraan->map(function ($k) {
             $image = $this->getImagePath($k->nopol);
             return [
                 'nama_mobil'    => $k->nama_mobil,
@@ -73,10 +80,9 @@ class KendaraanController extends Controller
             ];
         });
 
-        $kendaraan = $this->sortByStatus($kendaraan);
-
         return response()->json($kendaraan);
     }
+
 
     // List kendaraan untuk update data
     public function kendaraan()

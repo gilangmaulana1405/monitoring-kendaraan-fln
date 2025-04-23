@@ -76,6 +76,67 @@
     </div>
 
     <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        function fetchData() {
+            $.ajax({
+                url: '/kendaraan/data'
+                , type: 'GET'
+                , dataType: 'json'
+                , success: function(response) {
+                    let tableBody = $('#kendaraanTable');
+                    tableBody.empty();
+
+                    response.forEach(function(k, index) {
+                        let jam = new Date(k.updated_at).toLocaleTimeString('id-ID', {
+                            hour: '2-digit'
+                            , minute: '2-digit'
+                            , timeZone: 'Asia/Jakarta'
+                        });
+
+                        let statusBadge = '';
+                        if (k.status === 'Stand By') {
+                            statusBadge = `<span class="badge bg-success">Stand By</span> Jam ${jam}`;
+                        } else if (k.status === 'Pergi') {
+                            statusBadge = `<span class="badge bg-warning">Pergi</span> Jam ${jam}`;
+                        } else if (k.status === 'Perbaikan') {
+                            statusBadge = `<span class="badge bg-danger">Perbaikan</span> Jam ${jam}`;
+                        } else {
+                            statusBadge = `<span class="badge bg-secondary">Status Tidak Dikenal</span>`;
+                        }
+
+                        let row = `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${k.nama_mobil}</td>
+                                <td><img src="${k.image_path}" style="height: 100px; width: 100px; object-fit: cover;"></td>
+                                <td>${k.nopol}</td>
+                                <td>${statusBadge}</td>
+                                <td>${(k.nama_pemakai && k.departemen) ? `${k.nama_pemakai}<br>${k.departemen}` : '-'}</td>
+                                <td>${k.driver || '-'}</td>
+                                <td>${k.tujuan || '-'}</td>
+                                <td>${k.keterangan || '-'}</td>
+                            </tr>
+                            `;
+
+                        tableBody.append(row);
+                    });
+                }
+                , error: function() {
+                    console.log('Gagal mengambil data.');
+                }
+            });
+        }
+
+        setInterval(fetchData, 3000);
+
+    </script>
+
+    {{-- <script>
         function fetchData() {
             $.ajax({
                 url: '/kendaraan/data'
@@ -131,7 +192,7 @@
 
         setInterval(fetchData, 1000);
 
-    </script>
+    </script> --}}
 
 
 </body>
