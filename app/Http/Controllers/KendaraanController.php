@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Kendaraan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Events\KendaraanUpdated;
 use App\Models\HistoryKendaraan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 
 class KendaraanController extends Controller
 {
@@ -94,8 +97,12 @@ class KendaraanController extends Controller
 
         $kendaraan = $this->sortByStatus($kendaraan);
 
-        return view('kendaraan.overview', compact('kendaraan'));
+        // Ambil ID kendaraan yang akan digunakan di frontend
+        $kendaraanIds = $kendaraan->pluck('id');
+
+        return view('kendaraan.overview', compact('kendaraan', 'kendaraanIds'));
     }
+
 
     public function update(Request $request)
     {
@@ -146,6 +153,16 @@ class KendaraanController extends Controller
             $keterangan = $lastPergi?->keterangan;
         }
 
+        // Update data utama kendaraan
+        $kendaraan->status = $request->status;
+        $kendaraan->nama_pemakai = $namaPemakai;
+        $kendaraan->departemen = $departemen;
+        $kendaraan->driver = $driver;
+        $kendaraan->tujuan = $tujuan;
+        $kendaraan->keterangan = $keterangan;
+        $kendaraan->updated_at = now();
+        $kendaraan->save();
+
         // Simpan ke history
         HistoryKendaraan::create([
             'kendaraan_id' => $kendaraan->id,
@@ -160,15 +177,8 @@ class KendaraanController extends Controller
             'pic_update' => auth()->user()->username,
         ]);
 
-        // Update data utama kendaraan
-        $kendaraan->status = $request->status;
-        $kendaraan->nama_pemakai = $namaPemakai;
-        $kendaraan->departemen = $departemen;
-        $kendaraan->driver = $driver;
-        $kendaraan->tujuan = $tujuan;
-        $kendaraan->keterangan = $keterangan;
-        $kendaraan->updated_at = now();
-        $kendaraan->save();
+        // event(new KendaraanUpdated($kendaraan));
+        broadcast(new KendaraanUpdated($kendaraan));
 
         return response()->json([
             'success' => true,

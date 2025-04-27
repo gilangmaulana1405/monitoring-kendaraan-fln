@@ -7,6 +7,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>List Kendaraan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Pusher -->
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+
+    <!-- Laravel Echo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.1/echo.iife.js"></script>
+
 </head>
 
 <body>
@@ -146,8 +152,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/dayjs.min.js"></script>
+
     <script>
+        window.kendaraanIds = @json($kendaraanIds);
+
         document.addEventListener("DOMContentLoaded", function() {
+
+            // Inisialisasi Echo dan Pusher
+            const echo = new Echo({
+                broadcaster: 'pusher'
+                , key: '289d17420b0f46c80612', // <-- ini kunci public app kamu dari Pusher
+                cluster: 'ap1', // <-- ini cluster server kamu (ap1 = Asia Pasific 1)
+                forceTLS: true, // <-- pakai HTTPS
+            });
+
+            // Mendengarkan status kendaraan secara real-time
+            window.kendaraanIds.forEach(id => {
+                echo.channel(`kendaraan.${id}`)
+                    .listen('.KendaraanUpdated', (event) => {
+                        console.log("Realtime Event:", event);
+                        const card = document.querySelector(`[data-id='${event.id}']`);
+                        if (!card) return;
+
+                        const badge = card.querySelector(".status-badge");
+                        badge.textContent = event.status;
+                        badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+
+                        switch (event.status) {
+                            case "Stand By":
+                                badge.classList.add("bg-success");
+                                break;
+                            case "Pergi":
+                                badge.classList.add("bg-warning");
+                                break;
+                            case "Perbaikan":
+                                badge.classList.add("bg-danger");
+                                break;
+                        }
+
+                        const waktu = card.querySelector(".waktu-update");
+                        waktu.textContent = dayjs(event.updated_at).format('DD MMM YYYY, HH:mm');
+                    });
+            });
 
             //ketika pilih pergi maka muncul form
             document.querySelectorAll(".statusSelect").forEach(select => {
@@ -167,7 +214,6 @@
                     div.style.display = "none";
                 }
             }
-            // end
 
             // Tampilkan input 'driver lain' jika pilihannya 'Lain-lain'
             document.querySelectorAll(".driverSelect").forEach(select => {
@@ -207,7 +253,7 @@
                         let driver = driverSelect === "Lain-lain" ?
                             form.querySelector("input[name='driver_lain']").value.trim() :
                             driverSelect;
-                        
+
                         let tujuan = form.querySelector("input[name='tujuan']").value.trim();
 
                         if (!nama || !departemen || !driver || !tujuan) {
@@ -229,35 +275,37 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            console.log(data);
                             if (data.success) {
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
-                                setTimeout(() => {
-                                    document.getElementById("alertBox").innerHTML = "";
 
-                                    let card = document.querySelector(`[data-id='${id}']`);
-                                    const badge = card.querySelector(".status-badge");
-                                    badge.textContent = data.status;
+                                // Update badge status (local update)
+                                let card = document.querySelector(`[data-id='${id}']`);
+                                const badge = card.querySelector(".status-badge");
+                                badge.textContent = data.status;
+                                badge.classList.remove("bg-success", "bg-warning", "bg-danger");
 
-                                    // Hapus semua kelas warna lama
-                                    badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+                                switch (data.status) {
+                                    case "Stand By":
+                                        badge.classList.add("bg-success");
+                                        break;
+                                    case "Pergi":
+                                        badge.classList.add("bg-warning");
+                                        break;
+                                    case "Perbaikan":
+                                        badge.classList.add("bg-danger");
+                                        break;
+                                }
 
-                                    // Tambahkan class baru sesuai status
-                                    switch (data.status) {
-                                        case "Stand By":
-                                            badge.classList.add("bg-success");
-                                            break;
-                                        case "Pergi":
-                                            badge.classList.add("bg-warning");
-                                            break;
-                                        case "Perbaikan":
-                                            badge.classList.add("bg-danger");
-                                            break;
-                                    }
-                                    location.reload();
-                                }, 3000);
+                                // Jangan gunakan whisper pada public channel
+                                echo.channel(`kendaraan.${id}`).listen('.KendaraanUpdated', (event) => {
+                                    console.log("Realtime Event:", event);
+                                    // Update status lainnya di sini
+                                });
 
                                 let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
                                 modal.hide();
+
                             } else {
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, coba lagi.</div>`;
                             }
@@ -268,6 +316,9 @@
         });
 
     </script>
+
+
+
 
 </body>
 

@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\KendaraanUpdated;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,7 +27,9 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(KendaraanUpdated::class, function () {
+            Cache::put('kendaraan_last_update', now()->timestamp);
+        });
     }
 
     /**
