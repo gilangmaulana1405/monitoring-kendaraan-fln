@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History Kendaraan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    {{-- datatables cdn --}}
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+
+    {{-- datatables non cdn / offline --}}
+    <script src="{{ asset('assets/jquery/jquery-3.6.0.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('assets/datatables/css/jquery.dataTables.min.css') }}">
 </head>
 
 <body>
@@ -48,8 +53,11 @@
         </div>
     </div>
 
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables CDN JS -->
+    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script> --}}
+
+    <!-- DataTables non cdn offline JS -->
+    <script src="{{ asset('assets/datatables/js/jquery.dataTables.min.js') }}"></script>
 
     <script>
         $(document).ready(function() {

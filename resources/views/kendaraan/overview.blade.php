@@ -278,6 +278,10 @@
                             console.log(data);
                             if (data.success) {
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
+                                setTimeout(() => {
+                                    document.getElementById("alertBox").innerHTML = "";
+                                }, 3000); // hilang dalam 2 detik
+
 
                                 // Update badge status (local update)
                                 let card = document.querySelector(`[data-id='${id}']`);
@@ -307,7 +311,10 @@
                                 modal.hide();
 
                             } else {
-                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, coba lagi.</div>`;
+                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, silahkan coba lagi.</div>`;
+                                setTimeout(() => {
+                                    document.getElementById("alertBox").innerHTML = "";
+                                }, 3000);
                             }
                         })
                         .catch(error => console.error("Error:", error));
