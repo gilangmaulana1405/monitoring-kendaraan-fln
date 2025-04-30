@@ -66,14 +66,11 @@
                                 {{ $k->status }}
                             </span>
                             <br>
-                            <small class="text-muted waktu-update mt-1 d-block">
-                                @php
-                                if ($k->updated_at) {
-                                $diffInMinutes = $k->updated_at->diffInMinutes(now());
-                                $diffInHours = $k->updated_at->diffInHours(now());
-                                $diffInDays = $k->updated_at->diffInDays(now());
+                            {{-- time diffforhuman --}}
+                            <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
+                                {{ $k->updated_at ? $k->updated_at->diffForHumans() : 'Belum pernah diperbarui' }}
+                            </small>
 
-                                if ($diffInMinutes < 60) { $output=$diffInMinutes . ' menit yang lalu' ; } elseif ($diffInHours < 24) { $output=$diffInHours . ' jam yang lalu' ; } else { $output=$diffInDays . ' hari yang lalu' ; } } else { $output='Belum pernah diperbarui' ; } @endphp {{ $output }} </small>
                         </div>
                     </div>
                 </div>
@@ -152,9 +149,35 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/dayjs.min.js"></script>
+    <script src="{{ asset('js/vendor/dayjs/dayjs.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
+    <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
+
 
     <script>
+        // updated_at dinamis berubah ubah
+        dayjs.locale('id-custom', {
+            name: 'id-custom'
+            , relativeTime: {
+                future: 'dalam %s'
+                , past: '%s yang lalu'
+                , s: 'baru saja diubah'
+                , m: '1 menit'
+                , mm: '%d menit'
+                , h: '1 jam'
+                , hh: '%d jam'
+                , d: '1 hari'
+                , dd: '%d hari'
+                , M: '1 bulan'
+                , MM: '%d bulan'
+                , y: '1 tahun'
+                , yy: '%d tahun'
+            }
+        });
+
+        dayjs.extend(dayjs_plugin_relativeTime);
+        dayjs.locale('id-custom');
+
         window.kendaraanIds = @json($kendaraanIds);
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -192,9 +215,27 @@
                         }
 
                         const waktu = card.querySelector(".waktu-update");
-                        waktu.textContent = dayjs(event.updated_at).format('DD MMM YYYY, HH:mm');
+                        waktu.textContent = dayjs(event.updated_at).fromNow();
+                        waktu.setAttribute("data-updated", event.updated_at);
                     });
             });
+
+            // update_at berubah ubah dinamis
+            setInterval(() => {
+                document.querySelectorAll(".waktu-update").forEach(el => {
+                    const updatedAt = el.getAttribute("data-updated");
+                    if (updatedAt) {
+                        const diffInSeconds = dayjs().diff(dayjs(updatedAt), 'second');
+                        if (diffInSeconds < 60) {
+                            el.textContent = "Baru saja diubah";
+                        } else {
+                            el.textContent = dayjs(updatedAt).fromNow();
+                        }
+                    } else {
+                        el.textContent = "Belum pernah diperbarui";
+                    }
+                });
+            }, 1000);
 
             //ketika pilih pergi maka muncul form
             document.querySelectorAll(".statusSelect").forEach(select => {
