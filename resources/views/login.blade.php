@@ -13,6 +13,9 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
+                     <div class="text-center mb-4">
+                         <img src="{{ asset('/img/fln-logo.png') }}" alt="Logo" style="max-width: 150px;">
+                     </div>
                         <h3 class="text-center mb-4">Login</h3>
 
                         @if($errors->any())

@@ -6,12 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>List Kendaraan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Pusher -->
-    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
 
-    <!-- Laravel Echo -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.1/echo.iife.js"></script>
+    {{-- versi cdn --}}
+    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
+    {{-- <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.11.1/echo.iife.js"></script> --}}
+
+    {{-- offline --}}
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ asset('js/pusher-8.4.0.min.js') }}"></script>
+    <script src="{{ asset('js/echo-1.11.1.js') }}"></script>
 
 </head>
 
@@ -116,7 +120,7 @@
                                         <option value="IT">IT</option>
                                         <option value="MAINTENANCE">MAINTENANCE</option>
                                         <option value="MARKETING">MARKETING</option>
-                                        <option value="PPIC">PPIC</option>
+                                        <option value="PPIC/RM">PPIC/RM</option>
                                         <option value="PRODUKSI">PRODUKSI</option>
                                         <option value="PURCHASING">PURCHASING</option>
                                         <option value="QUALITY">QUALITY</option>
@@ -125,9 +129,10 @@
                                     <label class="form-label">Driver</label>
                                     <select name="driver" class="form-select driverSelect" data-id="{{ $k->id }}">
                                         <option value="Abas">Abas</option>
-                                        <option value="Kosasih">Kosasih</option>
                                         <option value="Rahmat">Rahmat</option>
                                         <option value="Fiki">Fiki</option>
+                                        <option value="Dwi">Dwi</option>
+                                        <option value="Zaenudin">Zaenudin</option>
                                         <option value="Lain-lain">Lain-lain</option>
                                     </select>
                                     <input type="text" class="form-control mt-2 driverLainInput" name="driver_lain" placeholder="Masukkan nama driver lain" style="display:none;">
@@ -148,7 +153,11 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- cdn --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
+
+    {{-- offline --}}
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/dayjs.min.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
@@ -364,9 +373,6 @@
         });
 
     </script>
-
-
-
 
 </body>
 
