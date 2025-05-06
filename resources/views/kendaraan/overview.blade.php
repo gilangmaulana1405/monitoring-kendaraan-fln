@@ -162,7 +162,6 @@
     <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
 
-
     <script>
         // updated_at dinamis berubah ubah
         dayjs.locale('id-custom', {
