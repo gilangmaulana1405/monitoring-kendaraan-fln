@@ -196,10 +196,12 @@
                 , key: 'my-local-key'
                 , cluster: 'mt1'
                 , forceTLS: false
-                , wsHost: window.location.hostname, // atau '127.0.0.1'
+                , wsHost: window.location.hostname, // bisa juga '127.0.0.1'
                 wsPort: 6001
-                , disableStats: true, // MATIKAN stats yang bikin konek ke Pusher Cloud
-                enabledTransports: ['ws', 'wss'], // hanya pakai websocket native, BUKAN SockJS
+                , wssPort: 6001, // Tambahkan ini jika kamu aktifkan HTTPS nanti
+                disableStats: true
+                , enabledTransports: ['ws'], // hanya pakai ws, tidak perlu wss untuk lokal
+                encrypted: false, // tambahan opsional, pastikan SSL tidak dipakai
             });
 
             // Mendengarkan status kendaraan secara real-time
