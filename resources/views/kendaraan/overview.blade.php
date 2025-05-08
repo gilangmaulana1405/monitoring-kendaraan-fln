@@ -202,7 +202,7 @@
             window.kendaraanIds.forEach(id => {
                 echo.channel(`kendaraan.${id}`)
                     .listen('.KendaraanUpdated', (event) => {
-                        console.log("Realtime Event:", event);
+                        // console.log("Realtime Event:", event);
                         const card = document.querySelector(`[data-id='${event.id}']`);
                         if (!card) return;
 
@@ -324,7 +324,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data);
+                            // console.log(data);
                             if (data.success) {
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
                                 setTimeout(() => {
@@ -352,7 +352,7 @@
 
                                 // Jangan gunakan whisper pada public channel
                                 echo.channel(`kendaraan.${id}`).listen('.KendaraanUpdated', (event) => {
-                                    console.log("Realtime Event:", event);
+                                    // console.log("Realtime Event:", event);
                                     // Update status lainnya di sini
                                 });
 
