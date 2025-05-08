@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
 </head>
 <body>
 
@@ -13,9 +13,9 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                     <div class="text-center mb-4">
-                         <img src="{{ asset('/img/fln-logo.png') }}" alt="Logo" style="max-width: 150px;">
-                     </div>
+                        <div class="text-center mb-4">
+                            <img src="{{ asset('/img/fln-logo.png') }}" alt="Logo" style="max-width: 150px;">
+                        </div>
                         <h3 class="text-center mb-4">Login</h3>
 
                         @if($errors->any())
@@ -47,6 +47,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>
