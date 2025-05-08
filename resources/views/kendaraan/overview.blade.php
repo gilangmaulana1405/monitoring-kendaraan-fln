@@ -193,10 +193,16 @@
             // Inisialisasi Echo dan Pusher
             const echo = new Echo({
                 broadcaster: 'pusher'
-                , key: '289d17420b0f46c80612', // <-- ini kunci public app kamu dari Pusher
-                cluster: 'ap1', // <-- ini cluster server kamu (ap1 = Asia Pasific 1)
-                forceTLS: true, // <-- pakai HTTPS
+                , key: 'my-local-key'
+                , cluster: 'mt1'
+                , forceTLS: false
+                , wsHost: window.location.hostname, // atau '127.0.0.1'
+                wsPort: 6001
+                , disableStats: true, // MATIKAN stats yang bikin konek ke Pusher Cloud
+                enabledTransports: ['ws', 'wss'], // hanya pakai websocket native, BUKAN SockJS
             });
+
+
 
             // Mendengarkan status kendaraan secara real-time
             window.kendaraanIds.forEach(id => {
