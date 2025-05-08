@@ -202,8 +202,6 @@
                 enabledTransports: ['ws', 'wss'], // hanya pakai websocket native, BUKAN SockJS
             });
 
-
-
             // Mendengarkan status kendaraan secara real-time
             window.kendaraanIds.forEach(id => {
                 echo.channel(`kendaraan.${id}`)
