@@ -108,40 +108,39 @@
                                 </select>
 
                                 <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
+
                                     <label class="form-label">Nama Pemakai *</label>
-                                    <input type="text" class="form-control" name="nama_pemakai">
+                                    <input type="text" class="form-control" name="nama_pemakai" {{ $k->status == 'Pergi' ? $k->nama_pemakai : '' }}>
 
                                     <label class="form-label">Departemen *</label>
                                     <select name="departemen" class="form-select">
-                                        <option value="ENGINEERING">ENGINEERING</option>
-                                        <option value="FA">FA</option>
-                                        <option value="HR/GA">HR/GA</option>
-                                        <option value="HSE">HSE</option>
-                                        <option value="IT">IT</option>
-                                        <option value="MAINTENANCE">MAINTENANCE</option>
-                                        <option value="MARKETING">MARKETING</option>
-                                        <option value="PPIC/RM">PPIC/RM</option>
-                                        <option value="PRODUKSI">PRODUKSI</option>
-                                        <option value="PURCHASING">PURCHASING</option>
-                                        <option value="QUALITY">QUALITY</option>
+                                        @foreach(['ENGINEERING', 'FA', 'HR/GA', 'HSE', 'IT', 'MAINTENANCE', 'MARKETING','MR', 'PPIC/RM', 'PRODUKSI', 'PURCHASING', 'QUALITY'] as $dept)
+                                        <option value="{{ $dept }}" {{ $k->departemen == $dept ? 'selected' : '' }}>
+                                            {{ $dept }}
+                                        </option>
+                                        @endforeach
                                     </select>
 
                                     <label class="form-label">Driver</label>
                                     <select name="driver" class="form-select driverSelect" data-id="{{ $k->id }}">
-                                        <option value="Abas">Abas</option>
-                                        <option value="Rahmat">Rahmat</option>
-                                        <option value="Fiki">Fiki</option>
-                                        <option value="Dwi">Dwi</option>
-                                        <option value="Zaenudin">Zaenudin</option>
-                                        <option value="Lain-lain">Lain-lain</option>
+                                        @php
+                                        $driverList = ['Abas', 'Rahmat', 'Fiki', 'Dwi', 'Zaenudin'];
+                                        @endphp
+                                        @foreach($driverList as $driver)
+                                        <option value="{{ $driver }}" {{ $k->driver == $driver ? 'selected' : '' }}>
+                                            {{ $driver }}
+                                        </option>
+                                        @endforeach
+                                        <option value="Lain-lain" {{ !in_array($k->driver, $driverList) ? 'selected' : '' }}>Lain-lain</option>
                                     </select>
-                                    <input type="text" class="form-control mt-2 driverLainInput" name="driver_lain" placeholder="Masukkan nama driver lain" style="display:none;">
+                                    <input type="text" class="form-control mt-2 driverLainInput" name="driver_lain" placeholder="Masukkan nama driver lain" value="{{ !in_array($k->driver, $driverList) ? $k->driver : '' }}" style="{{ !in_array($k->driver, $driverList) ? '' : 'display:none;' }}">
 
                                     <label class="form-label">Tujuan *</label>
-                                    <input type="text" class="form-control" name="tujuan">
+                                    <input type="text" class="form-control" name="tujuan" value="{{ $k->status == 'Pergi' ? $k->tujuan : '' }}">
 
                                     <label class="form-label">Keterangan (opsional)</label>
-                                    <textarea name="keterangan" class="form-control"></textarea>
+                                    <textarea name="keterangan" class="form-control">{{ $k->status == 'Pergi' ? $k->keterangan : '' }}</textarea>
+
                                 </div>
                                 <button type="submit" class="btn btn-primary mt-3">Update</button>
                             </form>
