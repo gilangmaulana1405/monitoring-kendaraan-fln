@@ -137,5 +137,6 @@
         setInterval(fetchData, 3000);
 
     </script>
+    
 </body>
 </html>

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama_mobil');
             $table->string('nopol');
+            $table->string('gambar_mobil')->nullable();
             $table->enum('status',['Stand By', 'Pergi', 'Perbaikan'])->default('Stand By');
             $table->string('nama_pemakai')->nullable();
             $table->string('departemen')->nullable();

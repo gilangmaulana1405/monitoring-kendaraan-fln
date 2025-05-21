@@ -17,13 +17,13 @@ class KendaraanController extends Controller
     // menampilkan gambar
     private function getImagePath($nopol)
     {
-        $imgPath = public_path('img/');
+        $imgPath = public_path('img/mobil/');
         $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-        $image = 'img/default.png';
+        $image = '';
 
         foreach ($extensions as $ext) {
             if (File::exists($imgPath . $nopol . '.' . $ext)) {
-                $image = 'img/' . $nopol . '.' . $ext;
+                $image = 'img/mobil/' . $nopol . '.' . $ext;
                 break;
             }
         }
@@ -102,7 +102,6 @@ class KendaraanController extends Controller
 
         return view('kendaraan.overview', compact('kendaraan', 'kendaraanIds'));
     }
-
 
     public function update(Request $request)
     {
@@ -185,40 +184,5 @@ class KendaraanController extends Controller
             'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
             'status' => $kendaraan->status,
         ]);
-    }
-
-    public function historyKendaraan()
-    {
-        return view('kendaraan.history');
-    }
-
-    public function getDatahistoryKendaraan()
-    {
-        $data = HistoryKendaraan::select([
-            'id',
-            'updated_at',
-            'nama_mobil',
-            'nopol',
-            'status',
-            'nama_pemakai',
-            'departemen',
-            'driver',
-            'tujuan',
-            'keterangan',
-            'pic_update',
-        ])
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($item) {
-                // Gabungkan nama mobil dan nopol
-                $item->mobil = $item->nama_mobil . '<br>' . ' (' . $item->nopol . ')';
-
-                // Gabungkan nama pemakai dan departemen
-                $item->pemakai = $item->nama_pemakai . ' <br> ' . $item->departemen;
-
-                return $item;
-            });
-
-        return response()->json($data);
     }
 }
