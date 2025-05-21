@@ -13,7 +13,7 @@ Route::get('/', function () {
 
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 
-Route::middleware(['auth', 'role:Admin GA, Staff GA'])->group(function () {
+Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     // admin
     Route::get('/admin', [AdminController::class, 'index'])->name('admin');
     Route::get('/users/list', [AdminController::class, 'listUsers'])->name('list.users');

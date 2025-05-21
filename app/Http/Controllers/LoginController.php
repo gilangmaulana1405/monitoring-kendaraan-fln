@@ -31,9 +31,7 @@ class LoginController extends Controller
             $role_GA = ['Admin GA', 'Staff GA'];
             if (in_array($user->jabatan, $role_GA)) {
                 return redirect('/admin');
-            } 
-            
-            if ($user->jabatan == 'Security' || $user->jabatan == 'Admin GA' || $user->jabatan == 'Staff GA') {
+            } elseif ($user->jabatan == 'Security' || $user->jabatan == 'Admin GA' || $user->jabatan == 'Staff GA') {
                 return redirect('/kendaraan');
             }
 
