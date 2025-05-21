@@ -28,9 +28,12 @@ class LoginController extends Controller
 
             // Cek role/jabatan pengguna
             $user = Auth::user();
-            if ($user->jabatan == 'Admin GA' || $user->jabatan == 'Staff GA') {
+            $role_GA = ['Admin GA', 'Staff GA'];
+            if (in_array($user->jabatan, $role_GA)) {
                 return redirect('/admin');
-            } elseif ($user->jabatan == 'Security') {
+            } 
+            
+            if ($user->jabatan == 'Security' || $user->jabatan == 'Admin GA' || $user->jabatan == 'Staff GA') {
                 return redirect('/kendaraan');
             }
 

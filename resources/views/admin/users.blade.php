@@ -14,7 +14,7 @@
 <body>
     <div class="container mt-5">
         <div class="text-center" style="margin-top: -20px;">
-            <img src="img/fln-logo.png" width="120px" alt="">
+            <img src="/img/fln-logo.png" width="120px" alt="">
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -25,9 +25,15 @@
                     {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
                 </span>
 
-                <button class="btn btn-primary btn-sm mt-2">
-                    Tambah Users
-                </button>
+                <div class="d-flex mt-2">
+                    <button class="btn btn-primary btn-sm me-3">
+                        Tambah Users
+                    </button>
+                    
+                    <a href="/admin" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa fa-arrow-left"></i> Kembali
+                    </a>
+                </div>
             </div>
         </div>
 

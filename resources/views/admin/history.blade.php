@@ -18,14 +18,23 @@
 <body>
     <div class="container mt-5">
         <div class="text-center" style="margin-top: -20px;">
-            <img src="img/fln-logo.png" width="120px" alt="">
+            <img src="/img/fln-logo.png" width="120px" alt="">
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">History Kendaraan</h2>
-            <span style="white-space: nowrap;">
-                {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-            </span>
+
+            <div class="d-flex flex-column align-items-end">
+                <span style="white-space: nowrap;">
+                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                </span>
+
+                <div class="d-flex mt-2">
+                    <a href="/admin" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa fa-arrow-left"></i> Kembali
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div id="loading" style="text-align: center; margin: 30px 0; display: none;">
