@@ -58,33 +58,61 @@ class AdminController extends Controller
 
     public function getDataUsers()
     {
-        $data = User::all();
+        $data = User::orderBy('updated_at', 'desc')->get();
         return response()->json($data);
+    }
+
+    public function tambahUsers(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|unique:users,username',
+            'jabatan' => 'required',
+            'password' => 'required|min:3'
+        ], [
+            'username.unique' => 'Username sudah ada.',
+            'username.required' => 'Username wajib diisi.',
+            'jabatan.required' => 'Jabatan wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 3 karakter.'
+        ]);
+
+        User::create([
+            'username' => $request->username,
+            'jabatan' => $request->jabatan,
+            'password' => Hash::make($request->password)
+        ]);
+
+        return response()->json(['message' => 'User berhasil ditambahkan!']);
     }
 
     public function gantiPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
+        // Validasi input
+        $request->validate([
             'current_password' => 'required',
-            'new_password' => 'required|confirmed',
+            'new_password' => 'required|min:3|confirmed', // Validasi untuk new_password dan konfirmasinya
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'new_password.required' => 'Password baru wajib diisi.',
+            'new_password.min' => 'Password baru minimal 3 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
+    
+        // Menemukan user berdasarkan ID
         $user = User::find($request->user_id);
-
+    
+        // Memeriksa apakah password saat ini cocok
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Password saat ini salah.'])->withInput();
         }
-
+    
+        // Mengubah password pengguna dengan password baru
         $user->password = Hash::make($request->new_password);
         $user->save();
-
-        return back()->with('success', 'Password berhasil diperbarui.');
-    }
+    
+        // Mengirimkan respons sukses
+        return response()->json(['message' => 'Password berhasil diperbarui!']);
+    }    
 
     public function listKendaraan()
     {

@@ -16,9 +16,13 @@ Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
 Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     // admin
     Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+
     Route::get('/users/list', [AdminController::class, 'listUsers'])->name('list.users');
     Route::get('/get-data-users', [AdminController::class, 'getDataUsers'])->name('list.users.data');
     Route::post('/users/ganti-password', [AdminController::class, 'gantiPassword'])->name('users.gantiPassword');
+    Route::post('/users/tambah', [AdminController::class, 'tambahUsers'])->name('tambah.users');
+
+
     Route::get('/kendaraan/list', [AdminController::class, 'listKendaraan'])->name('list.kendaraan');
     Route::get('/get-data-kendaraan', [AdminController::class, 'getDataKendaraan'])->name('list.kendaraan.data');
     Route::get('/kendaraan/history', [AdminController::class, 'historyKendaraan'])->name('history.kendaraan');

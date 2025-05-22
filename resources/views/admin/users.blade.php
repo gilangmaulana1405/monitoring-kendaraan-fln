@@ -26,10 +26,10 @@
                 </span>
 
                 <div class="d-flex mt-2">
-                    <button class="btn btn-primary btn-sm me-3">
+                    <button class="btn btn-primary btn-sm me-3" data-bs-toggle="modal" data-bs-target="#tambahUsersModal">
                         Tambah Users
                     </button>
-                    
+
                     <a href="/admin" class="btn btn-outline-secondary btn-sm">
                         <i class="fa fa-arrow-left"></i> Kembali
                     </a>
@@ -40,18 +40,6 @@
         <div id="loading" style="text-align: center; margin: 30px 0; display: none;">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
         </div>
-
-        @if (session('success'))
-        <div id="success-alert" class="alert alert-success">
-            {{ session('success') }}
-        </div>
-        @endif
-
-        @if ($errors->any())
-        <div id="error-alert" class="alert alert-danger">
-            Gagal menyimpan data. Silakan periksa input Anda.
-        </div>
-        @endif
 
         <div class="table-responsive">
             <table id="users-table" class="display" style="width:100%">
@@ -67,10 +55,50 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    {{-- modal tambah data --}}
+    <div class="modal fade" id="tambahUsersModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-tambah-user">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="gantiPasswordModalLabel">Tambah Data Users</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Username</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Jabatan</label>
+                            <input type="text" class="form-control" name="jabatan" required>
+                            <select name="jabatan">
+                                <option value="Admin GA">Admin GA</option>
+                                <option value="Staff GA">Staff GA</option>
+                                <option value="Security">Security</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Buat Password Baru</label>
+                            <input type="text" class="form-control" name="password" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Ganti Password -->
     <div class="modal fade" id="gantiPasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form method="POST" action="{{ route('users.gantiPassword') }}">
+            <form id="form-ganti-password">
                 @csrf
                 <div class="modal-content">
                     <div class="modal-header">
@@ -79,28 +107,29 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="user_id" id="modalUserId">
-                        <input type="text" class="form-control mb-2" id="modalUsername" readonly style="background-color: #e9ecef; pointer-events: none;">
+                        <input type="text" class="form-control mb-2" id="modalUsername" readonly style="background-color: #e9ecef; pointer-events: none;" autocomplete="modalUsername">
+
                         <div class="mb-3">
                             <label>Password Saat Ini</label>
-                            <input type="password" name="current_password" class="form-control" required>
+                            <input type="password" name="current_password" class="form-control" required autocomplete="current-password">
                             @error('current_password') <div class="text-danger">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="mb-3">
                             <label>Password Baru</label>
-                            <input type="password" name="new_password" class="form-control" required>
+                            <input type="password" name="new_password" class="form-control" required autocomplete="new-password">
                             @error('new_password') <div class="text-danger">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="mb-3">
                             <label>Konfirmasi Password Baru</label>
-                            <input type="password" name="new_password_confirmation" class="form-control" required>
+                            <input type="password" name="new_password_confirmation" class="form-control" required autocomplete="new-password-confirmation">
                         </div>
 
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Ganti Password</button>
                     </div>
                 </div>
             </form>
@@ -172,29 +201,95 @@
                             isFirstLoad = false; // Mengatur flag agar spinner tidak muncul di pemuatan berikutnya
                         }
                     }
-                    , error: function() {
-                        $('#loading').hide(); // Sembunyikan spinner jika terjadi error
+                    , error: function(xhr) {
+                        $('#loading').hide(); // Sembunyikan spinner
                     }
                 });
             }
 
             fetchData(); // Ambil data pertama kali saat halaman dimuat
             setInterval(fetchData, 5000); // Ambil data setiap 5 detik tanpa spinner
+        });
 
-            //alert hilang
-            setTimeout(function() {
-                $('#success-alert, #error-alert').fadeOut('slow');
-            }, 3000); // 3 detik
+    </script>
 
-            $(document).on('click', '.btn-password', function() {
-                const username = $(this).data('username');
-                const userId = $(this).data('id');
+    {{-- ganti password --}}
+    <script>
+        $(document).on('click', '.btn-password', function() {
+            const username = $(this).data('username');
+            const userId = $(this).data('id');
 
-                $('#modalUsername').val(username); // tampilkan username di input
-                $('#modalUserId').val(userId); // simpan ID user jika dibutuhkan
+            $('#modalUsername').val(username); // tampilkan username di input
+            $('#modalUserId').val(userId); // simpan ID user jika dibutuhkan
+        });
+
+
+        $('#form-ganti-password').on('submit', function(e) {
+            e.preventDefault(); // Cegah form submit biasa
+
+            let form = $(this);
+            let url = form.attr('action');
+            let data = form.serialize();
+
+            $.ajax({
+                url: '{{ route("users.gantiPassword") }}'
+                , method: 'POST'
+                , data: data
+                , success: function(response) {
+                    alert(response.message);
+                    $('#gantiPasswordModal').modal('hide');
+                    form[0].reset();
+                }
+                , error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let message = '';
+                        for (let key in errors) {
+                            message += errors[key][0] + '\n';
+                        }
+                        alert(message);
+                    } else {
+                        alert('Terjadi kesalahan server. Silakan coba lagi.');
+                    }
+                }
             });
         });
 
     </script>
+
+    {{-- tambah data --}}
+    <script>
+        $('#form-tambah-user').submit(function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: '{{ route("tambah.users") }}'
+                , method: 'POST'
+                , data: $(this).serialize()
+                , headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    location.reload();
+                }
+                , error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let message = '';
+                        for (let key in errors) {
+                            message += errors[key][0] + '\n';
+                        }
+                        alert(message); // ✅ Akan tampilkan: "Username sudah ada."
+                    } else {
+                        alert('Terjadi kesalahan server.');
+                        console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
+                    }
+                }
+            });
+        });
+
+    </script>
+
 </body>
 </html>
