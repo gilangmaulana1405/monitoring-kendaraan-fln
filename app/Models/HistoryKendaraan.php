@@ -38,4 +38,9 @@ class HistoryKendaraan extends Model
         'keterangan',
         'pic_update'
     ];
+
+    public function kendaraan()
+    {
+        return $this->belongsTo(Kendaraan::class);
+    }
 }

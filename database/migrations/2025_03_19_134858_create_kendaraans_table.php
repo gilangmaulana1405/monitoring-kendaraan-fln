@@ -17,11 +17,6 @@ return new class extends Migration
             $table->string('nopol');
             $table->string('gambar_mobil')->nullable();
             $table->enum('status',['Stand By', 'Pergi', 'Perbaikan'])->default('Stand By');
-            $table->string('nama_pemakai')->nullable();
-            $table->string('departemen')->nullable();
-            $table->text('tujuan')->nullable();
-            $table->string('driver')->nullable();
-            $table->string('keterangan')->nullable();
             $table->timestamps();
         });
     }

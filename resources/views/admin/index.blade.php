@@ -28,7 +28,7 @@
         <h1>Dashboard</h1>
         <div class="card mt-4">
             <div class="card-body">
-                Selamat datang di halaman admin! Ini adalah dashboard utama.
+                Selamat datang <strong>{{ auth()->user()->username }}</strong>! Ini adalah dashboard utama.
             </div>
         </div>
     </div>

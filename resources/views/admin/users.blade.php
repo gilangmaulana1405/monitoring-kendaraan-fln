@@ -74,7 +74,7 @@
 
                         <div class="mb-3">
                             <label>Jabatan</label>
-                            <select name="jabatan" class="form-control">
+                            <select name="jabatan" class="form-select">
                                 <option value="Admin GA">Admin GA</option>
                                 <option value="Staff GA">Staff GA</option>
                                 <option value="Security">Security</option>
