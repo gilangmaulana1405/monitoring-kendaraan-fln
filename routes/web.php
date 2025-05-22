@@ -21,6 +21,8 @@ Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     Route::get('/get-data-users', [AdminController::class, 'getDataUsers'])->name('list.users.data');
     Route::post('/users/ganti-password', [AdminController::class, 'gantiPassword'])->name('users.gantiPassword');
     Route::post('/users/tambah', [AdminController::class, 'tambahUsers'])->name('tambah.users');
+    Route::put('/users/{id}/edit', [AdminController::class, 'editUsers'])->name('edit.users');
+    Route::delete('/users/{id}/hapus', [AdminController::class, 'hapusUsers'])->name('hapus.users');
 
 
     Route::get('/kendaraan/list', [AdminController::class, 'listKendaraan'])->name('list.kendaraan');

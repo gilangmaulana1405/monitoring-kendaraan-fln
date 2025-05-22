@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>List Users</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- datatables non cdn / offline --}}
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
@@ -26,7 +27,7 @@
                 </span>
 
                 <div class="d-flex mt-2">
-                    <button class="btn btn-primary btn-sm me-3" data-bs-toggle="modal" data-bs-target="#tambahUsersModal">
+                    <button class="btn btn-primary btn-sm me-3" data-bs-toggle="modal" data-bs-target="#tambahUserModal">
                         Tambah Users
                     </button>
 
@@ -56,13 +57,13 @@
     </div>
 
     {{-- modal tambah data --}}
-    <div class="modal fade" id="tambahUsersModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
+    <div class="modal fade" id="tambahUserModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form id="form-tambah-user">
                 @csrf
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="gantiPasswordModalLabel">Tambah Data Users</h5>
+                        <h5 class="modal-title" id="tambahUserModalLabel">Tambah Data Users</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -73,8 +74,7 @@
 
                         <div class="mb-3">
                             <label>Jabatan</label>
-                            <input type="text" class="form-control" name="jabatan" required>
-                            <select name="jabatan">
+                            <select name="jabatan" class="form-control">
                                 <option value="Admin GA">Admin GA</option>
                                 <option value="Staff GA">Staff GA</option>
                                 <option value="Security">Security</option>
@@ -94,6 +94,64 @@
             </form>
         </div>
     </div>
+
+    {{-- edit data --}}
+    @foreach($users as $user)
+    <!-- Looping untuk setiap user -->
+    <div class="modal fade" id="editUserModal-{{ $user->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-edit-user-{{ $user->id }}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editUserId-{{ $user->id }}" value="{{ $user->id }}">
+                        <div class="mb-3">
+                            <label for="editUsername-{{ $user->id }}">Username</label>
+                            <input type="text" class="form-control" name="username" id="editUsername-{{ $user->id }}" value="{{ $user->username }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editJabatan-{{ $user->id }}">Jabatan</label>
+                            <select class="form-select" name="jabatan" id="editJabatan-{{ $user->id }}">
+                                @foreach($jabatanList as $jabatan)
+                                <option value="{{ $jabatan }}" {{ $jabatan == $user->jabatan ? 'selected' : '' }}>
+                                    {{ $jabatan }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- hapus data --}}
+    <div class="modal fade" id="hapusUserModal" tabindex="-1" aria-labelledby="hapusUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hapusUserModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Yakin ingin menghapus user <strong id="hapusUsername"></strong>?</p>
+                    <input type="hidden" id="hapusUserId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="konfirmasiHapusBtnUser">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modal Ganti Password -->
     <div class="modal fade" id="gantiPasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
@@ -185,8 +243,10 @@
                                 , item.username
                                 , item.jabatan
                                 , `<button class="btn btn-sm btn-info btn-password" data-bs-toggle="modal" data-bs-target="#gantiPasswordModal" data-id="${item.id}" data-username="${item.username}">Ganti Password</button>
-                                   <button class="btn btn-sm btn-warning">Edit</button>
-                                   <button class="btn btn-sm btn-danger">Hapus</button>`
+                                   <button class="btn btn-sm btn-warning btn-edit-user" data-id="${item.id}" data-username="${item.username}" data-jabatan="${item.jabatan}" data-bs-toggle="modal" data-bs-target="#editUserModal-${item.id}">
+                                       Edit
+                                   </button>
+                                   <button class="btn btn-sm btn-danger btn-hapus-user" data-id="${item.id}" data-username="${item.username}" data-bs-toggle="modal" data-bs-target="#hapusUserModal">Hapus</button>`
                             ]);
                         });
 
@@ -257,8 +317,9 @@
 
     </script>
 
-    {{-- tambah data --}}
+
     <script>
+        // tambah
         $('#form-tambah-user').submit(function(e) {
             e.preventDefault();
 
@@ -271,7 +332,11 @@
                 }
                 , success: function(res) {
                     alert(res.message);
-                    location.reload();
+                    $('#tambahUserModal').modal('hide');
+                    form[0].reset();
+                    form.find('.is-invalid').removeClass('is-invalid'); // hapus error style
+                    form.find('.invalid-feedback').remove();
+
                 }
                 , error: function(xhr) {
                     if (xhr.status === 422) {
@@ -285,6 +350,73 @@
                         alert('Terjadi kesalahan server.');
                         console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
                     }
+                }
+            });
+        });
+
+        $(document).on('submit', '[id^="form-edit-user-"]', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const id = form.find('input[name="id"]').val();
+            const username = form.find('input[name="username"]').val();
+            const jabatan = form.find('select[name="jabatan"]').val();
+
+            $.ajax({
+                url: `/users/${id}/edit`, // sesuaikan dengan route kamu
+                method: 'PUT'
+                , data: form.serialize()
+                , headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    $('#editUserModal-' + id).modal('hide'); // Menyembunyikan modal yang sesuai
+                }
+                , error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let message = '';
+                        for (let key in errors) {
+                            message += errors[key][0] + '\n';
+                        }
+                        alert(message);
+                    } else {
+                        alert('Terjadi kesalahan server.');
+                        console.log(xhr.responseText);
+                    }
+                }
+            });
+        });
+
+
+        // hapus
+        let userIdToDelete = null;
+        $(document).on('click', '.btn-hapus-user', function() {
+            userIdToDelete = $(this).data('id');
+            const username = $(this).data('username');
+
+            $('#hapusUsername').text(username);
+            $('#hapusUserId').val(userIdToDelete);
+        });
+
+        $('#konfirmasiHapusBtnUser').click(function() {
+            if (!userIdToDelete) return;
+
+            $.ajax({
+                url: '/users/' + userIdToDelete + '/hapus'
+                , type: 'POST'
+                , data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                    , _method: 'DELETE'
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    $('#hapusUserModal').modal('hide');
+                }
+                , error: function(xhr) {
+                    alert('Gagal menghapus data. Silakan coba lagi.');
+                    console.log(xhr.responseText);
                 }
             });
         });

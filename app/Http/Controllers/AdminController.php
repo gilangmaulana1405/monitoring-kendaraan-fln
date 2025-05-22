@@ -53,7 +53,9 @@ class AdminController extends Controller
 
     public function listUsers()
     {
-        return view('admin.users');
+        $users = User::all();
+        $jabatanList = ['Admin GA', 'Staff GA', 'Security']; 
+        return view('admin.users', compact('users','jabatanList'));
     }
 
     public function getDataUsers()
@@ -85,6 +87,34 @@ class AdminController extends Controller
         return response()->json(['message' => 'User berhasil ditambahkan!']);
     }
 
+    public function editUsers(Request $request, $id)
+    {
+        $request->validate([
+            'username' => 'required|unique:users,username',
+            'jabatan' => 'required',
+        ], [
+            'username.unique' => 'Username sudah ada.',
+            'username.required' => 'Username wajib diisi.',
+            'jabatan.required' => 'Jabatan wajib diisi.'
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->username = $request->username;
+        $user->jabatan = $request->jabatan;
+        $user->save();
+
+        return response()->json(['message' => 'User berhasil diperbarui!']);
+    }
+
+    public function hapusUsers($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'User berhasil dihapus!']);
+    }
+
+
     public function gantiPassword(Request $request)
     {
         // Validasi input
@@ -97,22 +127,22 @@ class AdminController extends Controller
             'new_password.min' => 'Password baru minimal 3 karakter.',
             'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
-    
+
         // Menemukan user berdasarkan ID
         $user = User::find($request->user_id);
-    
+
         // Memeriksa apakah password saat ini cocok
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Password saat ini salah.'])->withInput();
         }
-    
+
         // Mengubah password pengguna dengan password baru
         $user->password = Hash::make($request->new_password);
         $user->save();
-    
+
         // Mengirimkan respons sukses
         return response()->json(['message' => 'Password berhasil diperbarui!']);
-    }    
+    }
 
     public function listKendaraan()
     {
