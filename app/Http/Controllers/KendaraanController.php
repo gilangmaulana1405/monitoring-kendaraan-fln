@@ -111,7 +111,6 @@ class KendaraanController extends Controller
     }
 
 
-
     // List kendaraan untuk update data
     public function kendaraan()
     {

@@ -11,7 +11,7 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index']);
+Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index'])->name('monitoring.kendaraan');
 
 Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     // admin
@@ -33,7 +33,7 @@ Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
 
 Route::middleware(['auth', 'role:Admin GA,Staff GA,Security'])->group(function () {
     // inputan kendaraan (petugas security)
-    Route::get('/kendaraan', [KendaraanController::class, 'kendaraan']);
+    Route::get('/kendaraan', [KendaraanController::class, 'kendaraan'])->name('inputkeluarmasuk.kendaraan');
     Route::put('/kendaraan/update', [KendaraanController::class, 'update'])->name('kendaraan.update');
     Route::get('/kendaraan/data', [KendaraanController::class, 'getData']);
 });
