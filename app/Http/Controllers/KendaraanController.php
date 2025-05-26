@@ -11,6 +11,8 @@ use App\Models\HistoryKendaraan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
+
 
 class KendaraanController extends Controller
 {
@@ -18,18 +20,29 @@ class KendaraanController extends Controller
     // menampilkan gambar
     private function getImagePath($nopol)
     {
-        $imgPath = public_path('img/mobil/');
         $extensions = ['jpeg', 'jpg', 'png', 'webp'];
-        $image = '';
+        $folder = 'mobil/';
+        $storage = Storage::disk('public');
+
+        $nopolClean = strtoupper(str_replace(' ', '', $nopol));
 
         foreach ($extensions as $ext) {
-            if (File::exists($imgPath . $nopol . '.' . $ext)) {
-                $image = 'img/mobil/' . $nopol . '.' . $ext;
-                break;
+            $manualFile = "{$folder}{$nopolClean}.{$ext}";
+            if ($storage->exists($manualFile)) {
+                return asset("storage/{$manualFile}");
             }
         }
 
-        return $image;
+        // Scan all files in the folder and try partial match
+        $files = $storage->files($folder);
+        foreach ($files as $file) {
+            if (stripos(str_replace(' ', '', $file), $nopolClean) !== false) {
+                return asset("storage/{$file}");
+            }
+        }
+
+        // Default image if not found
+        return asset('images/no-image.png');
     }
 
     // sort by status
@@ -48,9 +61,9 @@ class KendaraanController extends Controller
     public function index()
     {
         // Ambil semua data kendaraan
-        $kendaraan = Kendaraan::all()->map(function ($k) {
+        $kendaraan = Kendaraan::orderBy('updated_at', 'desc')->get()->map(function ($k){
             // Ambil gambar kendaraan
-            $k->image_path = $this->getImagePath($k->nopol);
+            $k->image_path = $k->gambar_mobil ? asset('storage/mobil/' . $k->gambar_mobil) : null;
 
             // Ambil history terakhir untuk kendaraan ini
             $lastHistory = HistoryKendaraan::where('kendaraan_id', $k->id)
@@ -76,9 +89,9 @@ class KendaraanController extends Controller
 
     public function getData()
     {
-        // Urutkan kendaraan berdasarkan status dengan urutan yang diinginkan
+        // Urutkan kendaraan berdasarkan status, lalu updated_at descending
         $kendaraan = Kendaraan::orderByRaw("FIELD(status, 'Stand By', 'Pergi', 'Perbaikan')")
-            ->latest()  // Bisa diatur jika ingin urutkan berdasarkan waktu update
+            ->orderBy('updated_at', 'desc') // Sort terbaru
             ->take(8)   // Ambil hanya 8 kendaraan
             ->get();
 
@@ -93,14 +106,14 @@ class KendaraanController extends Controller
 
             return [
                 'nama_mobil'    => $k->nama_mobil,
-                'image_path'    => asset($image),
+                'image_path'    => $image,
                 'nopol'         => $k->nopol,
                 'status'        => $k->status,
-                'nama_pemakai'  => $lastHistory ? $lastHistory->nama_pemakai : '-',
-                'departemen'    => $lastHistory ? $lastHistory->departemen : '-',
-                'driver'        => $lastHistory ? $lastHistory->driver : '-',
-                'tujuan'        => $lastHistory ? $lastHistory->tujuan : '-',
-                'keterangan'    => $lastHistory ? $lastHistory->keterangan : '-',
+                'nama_pemakai'  => $lastHistory?->nama_pemakai ?? '-',
+                'departemen'    => $lastHistory?->departemen ?? '-',
+                'driver'        => $lastHistory?->driver ?? '-',
+                'tujuan'        => $lastHistory?->tujuan ?? '-',
+                'keterangan'    => $lastHistory?->keterangan ?? '-',
                 'updated_at'    => Carbon::parse($k->updated_at)
                     ->timezone('Asia/Jakarta')
                     ->toIso8601String(),
@@ -110,8 +123,7 @@ class KendaraanController extends Controller
         return response()->json($kendaraan);
     }
 
-
-    // List kendaraan untuk update data
+    // List kendaraan untuk input keluar masuk kendaraan
     public function kendaraan()
     {
         $kendaraan = Kendaraan::all()->map(function ($k) {

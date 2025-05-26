@@ -26,7 +26,7 @@
                 </span>
 
                 <div class="d-flex mt-2">
-                    <button class="btn btn-primary btn-sm me-3">
+                    <button class="btn btn-primary btn-sm me-3" id="btnTambah" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">
                         Tambah Kendaraan
                     </button>
 
@@ -55,6 +55,41 @@
             </table>
         </div>
     </div>
+
+    <!-- Modal Tambah -->
+    <div class="modal fade" id="tambahKendaraanModal" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-tambah-kendaraan" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTambahLabel">Tambah Kendaraan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Nama Mobil</label>
+                            <input type="text" class="form-control" name="nama_mobil" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>No Polisi</label>
+                            <input type="text" class="form-control" name="nopol" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gambar_mobil" class="form-label">Gambar Mobil</label>
+                            <input type="file" class="form-control" id="gambar_mobil" name="gambar_mobil" accept="image/*" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
 
     <!-- DataTables non cdn offline JS -->
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -102,11 +137,8 @@
                         let tableData = [];
 
                         $.each(data, function(i, item) {
-                            const gambarPath = item.gambar_mobil ?
-                                `/img/mobil/${encodeURIComponent(item.gambar_mobil)}` :
-                                '';
-                            const gambarMobil = gambarPath ?
-                                `<img src="${gambarPath}" alt="Gambar Mobil" width="200" height="200">` :
+                            const gambarMobil = item.gambar_url ?
+                                `<img src="${item.gambar_url}" alt="Gambar Mobil" width="200" height="200">` :
                                 'Tidak ada gambar';
 
                             tableData.push([
@@ -142,5 +174,49 @@
         });
 
     </script>
+
+    <script>
+        // tambah
+        $('#form-tambah-kendaraan').submit(function(e) {
+            e.preventDefault();
+
+            let form = $(this)[0];
+            let formData = new FormData(form);
+
+            $.ajax({
+                url: '{{ route("tambah.kendaraan") }}'
+                , method: 'POST'
+                , data: formData
+                , processData: false, // wajib untuk FormData
+                contentType: false, // wajib untuk FormData
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    console.log(res.data)
+                    $('#tambahKendaraanModal').modal('hide');
+                    form[0].reset();
+                    form.find('.is-invalid').removeClass('is-invalid'); // hapus error style
+                    form.find('.invalid-feedback').remove();
+                }
+                , error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let message = '';
+                        for (let key in errors) {
+                            message += errors[key][0] + '\n';
+                        }
+                        alert(message);
+                    } else {
+                        alert('Terjadi kesalahan server.');
+                        console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
+                    }
+                }
+            });
+        });
+
+    </script>
+
 </body>
 </html>

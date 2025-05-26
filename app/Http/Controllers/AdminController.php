@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Image;
 use App\Models\User;
 use App\Models\Kendaraan;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Models\HistoryKendaraan;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -54,8 +57,8 @@ class AdminController extends Controller
     public function listUsers()
     {
         $users = User::all();
-        $jabatanList = ['Admin GA', 'Staff GA', 'Security']; 
-        return view('admin.users', compact('users','jabatanList'));
+        $jabatanList = ['Admin GA', 'Staff GA', 'Security'];
+        return view('admin.users', compact('users', 'jabatanList'));
     }
 
     public function getDataUsers()
@@ -151,7 +154,78 @@ class AdminController extends Controller
 
     public function getDataKendaraan()
     {
-        $data = Kendaraan::select('nama_mobil', 'nopol', 'gambar_mobil')->get();
+        $data = Kendaraan::select('nama_mobil', 'nopol', 'gambar_mobil')
+        ->orderBy('created_at', 'desc') 
+        ->get();
+
+        $data->transform(function ($item) {
+            if ($item->gambar_mobil) {
+                $item->gambar_url = asset('storage/mobil/' . $item->gambar_mobil);
+            } else {
+                $item->gambar_url = null;
+            }
+            return $item;
+        });
+
         return response()->json($data);
+    }
+
+    public function tambahKendaraan(Request $request)
+    {
+        $request->validate([
+            'nama_mobil' => 'required|string|max:255',
+            'nopol' => 'required|string|max:255|unique:kendaraans,nopol',
+            'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+        ], [
+            'nopol.unique' => 'Error : Data kendaraan telah tersedia!',
+        ]);
+
+        $nama_mobil = ucwords(strtolower($request->nama_mobil)); 
+        $nopol = strtoupper($request->nopol);  
+
+        $gambarPath = null;
+
+        if ($request->hasFile('gambar_mobil')) {
+            $file = $request->file('gambar_mobil');
+
+            $extension = $file->getClientOriginalExtension();
+            $filename = "{$nama_mobil}_{$nopol}.{$extension}";
+
+            // Buat image instance
+            $image = Image::make($file->getPathname());
+
+            // Resize max width 1024 px
+            $image->resize(1024, null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+
+            // Simpan gambar ke temporary path (memory) dulu
+            $tempPath = sys_get_temp_dir() . '/' . $filename;
+            $quality = 90;
+            $image->save($tempPath, $quality);
+
+            // Kompres sampai <= 1MB atau quality minimal 30
+            while (filesize($tempPath) > 1024 * 1024 && $quality >= 30) {
+                $quality -= 5;
+                $image->save($tempPath, $quality);
+            }
+
+            $gambarPath = $filename;
+
+            Storage::disk('public')->put("mobil/{$filename}", file_get_contents($tempPath));
+
+            // Hapus file temporary
+            unlink($tempPath);
+        }
+
+        $kendaraan = Kendaraan::create([
+            'nama_mobil' => $nama_mobil,
+            'nopol' => $nopol,
+            'gambar_mobil' => $gambarPath,
+            'status' => 'Stand By',
+        ]);
+
+        return response()->json(['message' => 'Kendaraan berhasil ditambahkan!']);
     }
 }

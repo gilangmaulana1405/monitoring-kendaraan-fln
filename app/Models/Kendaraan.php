@@ -9,6 +9,15 @@ class Kendaraan extends Model
 {
     use HasFactory;
 
+    protected $table = 'kendaraans';
+
+    protected $fillable = [
+        'nama_mobil',
+        'nopol',
+        'gambar_mobil',
+        'status',
+    ];
+
     // Kendaraan.php
     public function histories()
     {

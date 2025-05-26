@@ -44,7 +44,7 @@
                     </td>
                     <td>{{ $k->nama_mobil }}</td>
                     <td>
-                        <img src="{{ asset($k->image_path) }}" style="height: 100px; width: 100px;">
+                         <img src="{{ $k->image_path }}" alt="Gambar {{ $k->nopol }}" style="width:100px; height:100px; object-fit:cover;">
                     </td>
                     <td>{{ $k->nopol }}</td>
                     <td>
@@ -137,6 +137,6 @@
         setInterval(fetchData, 3000);
 
     </script>
-    
+
 </body>
 </html>

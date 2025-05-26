@@ -336,7 +336,6 @@
                     form[0].reset();
                     form.find('.is-invalid').removeClass('is-invalid'); // hapus error style
                     form.find('.invalid-feedback').remove();
-
                 }
                 , error: function(xhr) {
                     if (xhr.status === 422) {

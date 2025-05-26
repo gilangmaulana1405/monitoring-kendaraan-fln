@@ -1,0 +1,1 @@
+pake package composer require intervention/image:^2.7 untuk konversi gambar

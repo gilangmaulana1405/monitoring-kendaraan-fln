@@ -27,6 +27,10 @@ Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
 
     Route::get('/kendaraan/list', [AdminController::class, 'listKendaraan'])->name('list.kendaraan');
     Route::get('/get-data-kendaraan', [AdminController::class, 'getDataKendaraan'])->name('list.kendaraan.data');
+    Route::post('/kendaraan/tambah', [AdminController::class, 'tambahKendaraan'])->name('tambah.kendaraan');
+    Route::put('/kendaraan/{id}/edit', [AdminController::class, 'listKendaraan'])->name('edit.kendaraan');
+    Route::delete('/kendaraan/{id}/hapus', [AdminController::class, 'listKendaraan'])->name('hapus.kendaraan');
+
     Route::get('/kendaraan/history', [AdminController::class, 'historyKendaraan'])->name('history.kendaraan');
     Route::get('/get-data-history-kendaraan', [AdminController::class, 'getDatahistoryKendaraan'])->name('history.kendaraan.data');
 });
