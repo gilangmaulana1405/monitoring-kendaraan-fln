@@ -118,6 +118,7 @@
                                         <option value="HR/GA">HR/GA</option>
                                         <option value="HSE">HSE</option>
                                         <option value="IT">IT</option>
+                                        <option value="MR">MR</option>
                                         <option value="MAINTENANCE">MAINTENANCE</option>
                                         <option value="MARKETING">MARKETING</option>
                                         <option value="PPIC/RM">PPIC/RM</option>
@@ -191,48 +192,54 @@
         document.addEventListener("DOMContentLoaded", function() {
 
             // Inisialisasi Echo dan Pusher
-            const echo = new Echo({
+            window.Echo = new Echo({
                 broadcaster: 'pusher'
-                , key: 'my-local-key'
-                , cluster: 'mt1'
+                , key: '{{ config("reverb.apps.apps.0.key") }}'
+                , cluster: '{{ env("REVERB_APP_CLUSTER", "mt1") }}', // cluster diperlukan saat broadcaster 'pusher'
+                wsHost: window.location.hostname
+                , wsPort: 6001
                 , forceTLS: false
-                , wsHost: window.location.hostname, // bisa juga '127.0.0.1'
-                wsPort: 6001
-                , wssPort: 6001, // Tambahkan ini jika kamu aktifkan HTTPS nanti
-                disableStats: true
-                , enabledTransports: ['ws'], // hanya pakai ws, tidak perlu wss untuk lokal
-                encrypted: false, // tambahan opsional, pastikan SSL tidak dipakai
+                , disableStats: true
+                , enabledTransports: ['ws']
+            , });
+
+            // Cek koneksi WebSocket
+            window.Echo.connector.pusher.connection.bind('connected', () => {
+                console.log('WebSocket Connected');
             });
 
-            // Mendengarkan status kendaraan secara real-time
-            window.kendaraanIds.forEach(id => {
-                echo.channel(`kendaraan.${id}`)
-                    .listen('.KendaraanUpdated', (event) => {
-                        // console.log("Realtime Event:", event);
-                        const card = document.querySelector(`[data-id='${event.id}']`);
-                        if (!card) return;
+            // Pastikan kendaraanIds sudah didefinisikan
+            if (Array.isArray(window.kendaraanIds)) {
+                window.kendaraanIds.forEach(id => {
+                    window.Echo.channel(`kendaraan.${id}`)
+                        .listen('.KendaraanUpdated', (event) => {
+                            const card = document.querySelector(`[data-id='${event.id}']`);
+                            if (!card) return;
 
-                        const badge = card.querySelector(".status-badge");
-                        badge.textContent = event.status;
-                        badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+                            const badge = card.querySelector(".status-badge");
+                            badge.textContent = event.status;
+                            badge.classList.remove("bg-success", "bg-warning", "bg-danger");
 
-                        switch (event.status) {
-                            case "Stand By":
-                                badge.classList.add("bg-success");
-                                break;
-                            case "Pergi":
-                                badge.classList.add("bg-warning");
-                                break;
-                            case "Perbaikan":
-                                badge.classList.add("bg-danger");
-                                break;
-                        }
+                            switch (event.status) {
+                                case "Stand By":
+                                    badge.classList.add("bg-success");
+                                    break;
+                                case "Pergi":
+                                    badge.classList.add("bg-warning");
+                                    break;
+                                case "Perbaikan":
+                                    badge.classList.add("bg-danger");
+                                    break;
+                            }
 
-                        const waktu = card.querySelector(".waktu-update");
-                        waktu.textContent = dayjs(event.updated_at).fromNow();
-                        waktu.setAttribute("data-updated", event.updated_at);
-                    });
-            });
+                            const waktu = card.querySelector(".waktu-update");
+                            waktu.textContent = dayjs(event.updated_at).fromNow();
+                            waktu.setAttribute("data-updated", event.updated_at);
+                        });
+                });
+            } else {
+                console.warn('kendaraanIds belum didefinisikan atau bukan array.');
+            }
 
             // update_at berubah ubah dinamis
             setInterval(() => {
@@ -355,12 +362,6 @@
                                         badge.classList.add("bg-danger");
                                         break;
                                 }
-
-                                // Jangan gunakan whisper pada public channel
-                                echo.channel(`kendaraan.${id}`).listen('.KendaraanUpdated', (event) => {
-                                    // console.log("Realtime Event:", event);
-                                    // Update status lainnya di sini
-                                });
 
                                 let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
                                 modal.hide();

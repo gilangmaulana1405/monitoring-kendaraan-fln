@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>List Kendaraan</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- datatables non cdn / offline --}}
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
@@ -89,6 +90,60 @@
         </div>
     </div>
 
+    @foreach($kendaraans as $kendaraan)
+    <div class="modal fade" id="editKendaraanModal-{{ $kendaraan->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="form-edit-kendaraan-{{ $kendaraan->id }}" enctype="multipart/form-data">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editKendaraanId-{{ $kendaraan->id }}" value="{{ $kendaraan->id }}">
+                        <div class="mb-3">
+                            <label for="editNamaMobil-{{ $kendaraan->id }}">Nama Mobil</label>
+                            <input type="text" class="form-control" name="nama_mobil" id="editNamaMobil-{{ $kendaraan->id }}" value="{{ $kendaraan->nama_mobil }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editNopol-{{ $kendaraan->id }}">Nopol</label>
+                            <input type="text" class="form-control" name="nopol" id="editNopol-{{ $kendaraan->id }}" value="{{ $kendaraan->nopol }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editGambarMobil-{{ $kendaraan->id }}">Username</label>
+                            <input type="file" class="form-control" name="gambar_mobil" id="editGambarMobil-{{ $kendaraan->id }}" value="{{ $kendaraan->gambar_mobil }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endforeach
+
+
+    {{-- modal hapus --}}
+    <div class="modal fade" id="hapusKendaraanModal" tabindex="-1" aria-labelledby="hapusKendaraanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hapusKendaraanModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Yakin ingin menghapus kendaraan <strong id="hapusNamaMobil"></strong> (<strong id="hapusNopol"></strong>)?</p>
+                    <input type="hidden" id="hapusKendaraanId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="konfirmasiHapusBtnKendaraan">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <!-- DataTables non cdn offline JS -->
@@ -147,8 +202,12 @@
                                 , item.nopol
                                 , gambarMobil
                                 , `
-                                   <button class="btn btn-sm btn-warning">Edit</button>
-                                   <button class="btn btn-sm btn-danger">Hapus</button>`
+                                   <button class="btn btn-sm btn-warning btn-edit-user" data-id="${item.id}" data-nama-mobil="${item.nama_mobil}" data-nopol="${item.nopol}" data-gambar-mobil="${item.gambar_mobil}" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${item.id}">
+                                       Edit
+                                   </button>
+
+                                   <button class="btn btn-sm btn-danger btn-hapus-kendaraan" 
+                                   data-id="${item.id}" data-nama-mobil="${item.nama_mobil}" data-nopol="${item.nopol}" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal">Hapus</button>`
                             ]);
                         });
 
@@ -157,10 +216,10 @@
                         table.clear().rows.add(tableData).draw(false); // false supaya tetap di halaman sekarang
                         table.page(currentPage).draw(false); // kembali ke halaman sebelumnya
 
-                        $('#loading').hide(); // Sembunyikan spinner setelah data selesai dimuat
+                        $('#loading').hide();
 
                         if (isFirstLoad) {
-                            isFirstLoad = false; // Mengatur flag agar spinner tidak muncul di pemuatan berikutnya
+                            isFirstLoad = false;
                         }
                     }
                     , error: function() {
@@ -212,6 +271,82 @@
                         alert('Terjadi kesalahan server.');
                         console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
                     }
+                }
+            });
+        });
+
+
+        // edit
+        $(document).on('submit', '[id^="form-edit-kendaraan-"]', function(e) {
+            e.preventDefault();
+
+            const form = $(this)[0];
+            const formData = new FormData(form);
+            const id = formData.get('id');
+
+            $.ajax({
+                url: `/kendaraan/${id}/edit`
+                , method: 'POST'
+                , data: formData
+                , processData: false
+                , contentType: false
+                , headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    $('#editKendaraanModal-' + id).modal('hide');
+                    location.reload();
+                }
+                , error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let message = '';
+                        for (let key in errors) {
+                            message += errors[key][0] + '\n';
+                        }
+                        alert(message);
+                    } else {
+                        alert('Terjadi kesalahan server.');
+                        console.log(xhr.responseText);
+                    }
+                }
+            });
+        });
+
+        // hapus
+        let kendaraanIdToDelete = null;
+        $(document).on('click', '.btn-hapus-kendaraan', function() {
+            let kendaraanIdToDelete = $(this).data('id');
+            let nama_mobil = $(this).data('nama-mobil');
+            let nopol = $(this).data('nopol');
+
+            $('#hapusKendaraanId').val(kendaraanIdToDelete);
+            $('#hapusNamaMobil').text(nama_mobil);
+            $('#hapusNopol').text(nopol);
+        });
+
+        $('#konfirmasiHapusBtnKendaraan').click(function() {
+            let kendaraanIdToDelete = $('#hapusKendaraanId').val();
+            if (!kendaraanIdToDelete) {
+                console.log('ID kendaraan kosong!');
+                return;
+            }
+
+            $.ajax({
+                url: '/kendaraan/' + kendaraanIdToDelete + '/hapus'
+                , type: 'POST'
+                , data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                    , _method: 'DELETE'
+                }
+                , success: function(res) {
+                    alert(res.message);
+                    $('#hapusKendaraanModal').modal('hide');
+                }
+                , error: function(xhr) {
+                    alert('Gagal menghapus data. Silakan coba lagi.');
+                    console.log(xhr.responseText);
                 }
             });
         });

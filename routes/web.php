@@ -24,12 +24,11 @@ Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     Route::put('/users/{id}/edit', [AdminController::class, 'editUsers'])->name('edit.users');
     Route::delete('/users/{id}/hapus', [AdminController::class, 'hapusUsers'])->name('hapus.users');
 
-
     Route::get('/kendaraan/list', [AdminController::class, 'listKendaraan'])->name('list.kendaraan');
     Route::get('/get-data-kendaraan', [AdminController::class, 'getDataKendaraan'])->name('list.kendaraan.data');
     Route::post('/kendaraan/tambah', [AdminController::class, 'tambahKendaraan'])->name('tambah.kendaraan');
-    Route::put('/kendaraan/{id}/edit', [AdminController::class, 'listKendaraan'])->name('edit.kendaraan');
-    Route::delete('/kendaraan/{id}/hapus', [AdminController::class, 'listKendaraan'])->name('hapus.kendaraan');
+    Route::put('/kendaraan/{id}/edit', [AdminController::class, 'editKendaraan'])->name('edit.kendaraan');
+    Route::delete('/kendaraan/{id}/hapus', [AdminController::class, 'hapusKendaraan'])->name('hapus.kendaraan');
 
     Route::get('/kendaraan/history', [AdminController::class, 'historyKendaraan'])->name('history.kendaraan');
     Route::get('/get-data-history-kendaraan', [AdminController::class, 'getDatahistoryKendaraan'])->name('history.kendaraan.data');

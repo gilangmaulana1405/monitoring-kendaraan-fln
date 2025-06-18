@@ -283,7 +283,6 @@
             $('#modalUserId').val(userId); // simpan ID user jika dibutuhkan
         });
 
-
         $('#form-ganti-password').on('submit', function(e) {
             e.preventDefault(); // Cegah form submit biasa
 
@@ -317,7 +316,6 @@
 
     </script>
 
-
     <script>
         // tambah
         $('#form-tambah-user').submit(function(e) {
@@ -334,7 +332,7 @@
                     alert(res.message);
                     $('#tambahUserModal').modal('hide');
                     form[0].reset();
-                    form.find('.is-invalid').removeClass('is-invalid'); // hapus error style
+                    form.find('.is-invalid').removeClass('is-invalid'); 
                     form.find('.invalid-feedback').remove();
                 }
                 , error: function(xhr) {
@@ -344,7 +342,7 @@
                         for (let key in errors) {
                             message += errors[key][0] + '\n';
                         }
-                        alert(message); // ✅ Akan tampilkan: "Username sudah ada."
+                        alert(message); 
                     } else {
                         alert('Terjadi kesalahan server.');
                         console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
@@ -353,6 +351,7 @@
             });
         });
 
+        // edit user
         $(document).on('submit', '[id^="form-edit-user-"]', function(e) {
             e.preventDefault();
 
@@ -362,7 +361,7 @@
             const jabatan = form.find('select[name="jabatan"]').val();
 
             $.ajax({
-                url: `/users/${id}/edit`, // sesuaikan dengan route kamu
+                url: `/users/${id}/edit`, 
                 method: 'PUT'
                 , data: form.serialize()
                 , headers: {
@@ -370,7 +369,7 @@
                 }
                 , success: function(res) {
                     alert(res.message);
-                    $('#editUserModal-' + id).modal('hide'); // Menyembunyikan modal yang sesuai
+                    $('#editUserModal-' + id).modal('hide'); 
                 }
                 , error: function(xhr) {
                     if (xhr.status === 422) {

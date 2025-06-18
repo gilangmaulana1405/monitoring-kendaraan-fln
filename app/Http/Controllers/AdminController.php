@@ -117,7 +117,6 @@ class AdminController extends Controller
         return response()->json(['message' => 'User berhasil dihapus!']);
     }
 
-
     public function gantiPassword(Request $request)
     {
         // Validasi input
@@ -149,14 +148,15 @@ class AdminController extends Controller
 
     public function listKendaraan()
     {
-        return view('admin.kendaraan');
+        $kendaraans = Kendaraan::all();
+        return view('admin.kendaraan', compact('kendaraans'));
     }
 
     public function getDataKendaraan()
     {
-        $data = Kendaraan::select('nama_mobil', 'nopol', 'gambar_mobil')
-        ->orderBy('created_at', 'desc') 
-        ->get();
+        $data = Kendaraan::select('id', 'nama_mobil', 'nopol', 'gambar_mobil')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $data->transform(function ($item) {
             if ($item->gambar_mobil) {
@@ -175,13 +175,16 @@ class AdminController extends Controller
         $request->validate([
             'nama_mobil' => 'required|string|max:255',
             'nopol' => 'required|string|max:255|unique:kendaraans,nopol',
-            'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'nopol.unique' => 'Error : Data kendaraan telah tersedia!',
+            'nopol.unique' => 'Error : Nopol kendaraan telah tersedia!',
+            'gambar_mobil.max' => 'Error : Ukuran gambar maksimal 2MB.',
+            'gambar_mobil.mimes' => 'Error : Format gambar harus jpeg, png, atau jpg.',
+            'gambar_mobil.image' => 'Error : File yang diunggah harus berupa gambar.',
         ]);
 
-        $nama_mobil = ucwords(strtolower($request->nama_mobil)); 
-        $nopol = strtoupper($request->nopol);  
+        $nama_mobil = ucwords(strtolower($request->nama_mobil));
+        $nopol = strtoupper($request->nopol);
 
         $gambarPath = null;
 
@@ -227,5 +230,72 @@ class AdminController extends Controller
         ]);
 
         return response()->json(['message' => 'Kendaraan berhasil ditambahkan!']);
+    }
+    public function editKendaraan(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:kendaraans,id',
+            'nama_mobil' => 'required|string|max:255',
+            'nopol' => 'required|string|max:255|unique:kendaraans,nopol,' . $request->id,
+            'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'nopol.unique' => 'Error : Nopol kendaraan telah tersedia!',
+            'gambar_mobil.max' => 'Error : Ukuran gambar maksimal 2MB.',
+            'gambar_mobil.mimes' => 'Error : Format gambar harus jpeg, png, atau jpg.',
+            'gambar_mobil.image' => 'Error : File yang diunggah harus berupa gambar.',
+        ]);
+
+        $kendaraan = Kendaraan::findOrFail($request->id);
+
+        $nama_mobil = ucwords(strtolower($request->nama_mobil));
+        $nopol = strtoupper($request->nopol);
+
+        $gambarPath = $kendaraan->gambar_mobil;
+
+        if ($request->hasFile('gambar_mobil')) {
+            // Hapus gambar lama jika ada
+            if ($kendaraan->gambar_mobil && Storage::disk('public')->exists("mobil/{$kendaraan->gambar_mobil}")) {
+                Storage::disk('public')->delete("mobil/{$kendaraan->gambar_mobil}");
+            }
+
+            $file = $request->file('gambar_mobil');
+            $extension = $file->getClientOriginalExtension();
+            $filename = "{$nama_mobil}_{$nopol}." . $extension;
+
+            $image = \Image::make($file->getPathname());
+            $image->resize(1024, null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+
+            $tempPath = sys_get_temp_dir() . '/' . $filename;
+            $quality = 90;
+            $image->save($tempPath, $quality);
+
+            while (filesize($tempPath) > 1024 * 1024 && $quality >= 30) {
+                $quality -= 5;
+                $image->save($tempPath, $quality);
+            }
+
+            // Simpan path baru
+            $gambarPath = $filename;
+            Storage::disk('public')->put("mobil/{$filename}", file_get_contents($tempPath));
+            unlink($tempPath);
+        }
+
+        $kendaraan->update([
+            'nama_mobil' => $nama_mobil,
+            'nopol' => $nopol,
+            'gambar_mobil' => $gambarPath,
+        ]);
+
+        return response()->json(['message' => 'Data kendaraan berhasil diperbarui.']);
+    }
+    public function hapusKendaraan($id)
+    {
+        $user = Kendaraan::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'Kendaraan berhasil dihapus!']);
     }
 }
