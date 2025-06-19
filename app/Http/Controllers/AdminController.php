@@ -289,7 +289,7 @@ class AdminController extends Controller
             'gambar_mobil' => $gambarPath,
         ]);
 
-        return response()->json(['message' => 'Data kendaraan berhasil diperbarui.']);
+        return response()->json(['message' => 'Kendaraan berhasil diperbarui.']);
     }
     public function hapusKendaraan($id)
     {
