@@ -26,33 +26,30 @@ class AdminController extends Controller
 
     public function getDatahistoryKendaraan()
     {
-        $data = HistoryKendaraan::select([
-            'id',
-            'updated_at',
-            'nama_mobil',
-            'nopol',
-            'status',
-            'nama_pemakai',
-            'departemen',
-            'driver',
-            'tujuan',
-            'keterangan',
-            'pic_update',
-        ])
+        $data = HistoryKendaraan::with('kendaraan') // join relasi
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(function ($item) {
+                // Pastikan kendaraan tersedia (relasi tidak null)
+                $namaMobil = $item->kendaraan->nama_mobil ?? '-';
+                $nopol = $item->kendaraan->nopol ?? '-';
+                $status = $item->kendaraan->status ?? '-';
+    
                 // Gabungkan nama mobil dan nopol
-                $item->mobil = $item->nama_mobil . '<br>' . ' (' . $item->nopol . ')';
-
+                $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
+    
                 // Gabungkan nama pemakai dan departemen
-                $item->pemakai = $item->nama_pemakai . ' <br> ' . $item->departemen;
-
+                $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
+    
+                // Tambahkan properti status untuk badge di view
+                $item->status = $status;
+    
                 return $item;
             });
-
+    
         return response()->json($data);
     }
+    
 
     public function listUsers()
     {

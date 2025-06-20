@@ -61,7 +61,7 @@ class KendaraanController extends Controller
     public function index()
     {
         // Ambil semua data kendaraan
-        $kendaraan = Kendaraan::orderBy('updated_at', 'desc')->get()->map(function ($k){
+        $kendaraan = Kendaraan::orderBy('updated_at', 'desc')->get()->map(function ($k) {
             // Ambil gambar kendaraan
             $k->image_path = $k->gambar_mobil ? asset('storage/mobil/' . $k->gambar_mobil) : null;
 
@@ -148,22 +148,27 @@ class KendaraanController extends Controller
             $rules['nama_pemakai'] = 'nullable|string';
             $rules['departemen'] = 'nullable|string';
             $rules['driver'] = 'required|string';
+
             if ($request->driver === 'Lain-lain') {
                 $rules['driver_lain'] = 'required|string';
             }
+
             $rules['tujuan'] = 'nullable|string';
             $rules['keterangan'] = 'nullable|string';
         }
 
         $request->validate($rules);
 
+        // Ambil data kendaraan
         $kendaraan = Kendaraan::findOrFail($request->id);
 
+        // Ambil history terakhir yang status-nya 'Pergi'
         $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
-            ->where('status', 'Pergi')
+            ->whereHas('kendaraan')
             ->latest()
             ->first();
 
+        // Siapkan data history baru berdasarkan status
         if ($request->status === 'Pergi') {
             $namaPemakai = $request->nama_pemakai ?? $lastPergi?->nama_pemakai;
             $departemen = $request->departemen ?? $lastPergi?->departemen;
@@ -180,21 +185,18 @@ class KendaraanController extends Controller
             $keterangan = $lastPergi?->keterangan;
         }
 
-        // Capitalize only driver and nama_pemakai
+        // Format penulisan nama
         $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
         $driver = $driver ? Str::title($driver) : null;
 
-        // HANYA update status kendaraan
+        // Update status kendaraan saja
         $kendaraan->status = $request->status;
         $kendaraan->updated_at = now();
         $kendaraan->save();
 
-        // Simpan snapshot ke history
+        // Simpan ke history (tanpa nama_mobil, nopol, status)
         HistoryKendaraan::create([
             'kendaraan_id' => $kendaraan->id,
-            'nama_mobil' => $kendaraan->nama_mobil,
-            'nopol' => $kendaraan->nopol,
-            'status' => $request->status,
             'nama_pemakai' => $namaPemakai,
             'departemen' => $departemen,
             'driver' => $driver,
@@ -203,6 +205,7 @@ class KendaraanController extends Controller
             'pic_update' => auth()->user()->username,
         ]);
 
+        // Kirim update ke broadcast jika real-time (opsional)
         broadcast(new KendaraanUpdated($kendaraan));
 
         return response()->json([

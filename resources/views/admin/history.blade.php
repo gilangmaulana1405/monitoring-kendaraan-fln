@@ -113,7 +113,7 @@
 
             function fetchData() {
                 if (isFirstLoad) {
-                    $('#loading').show(); // Menampilkan spinner hanya saat pemuatan pertama
+                    $('#loading').show();
                 }
 
                 $.ajax({
@@ -139,7 +139,7 @@
                             });
 
                             let statusBadge = '';
-                            switch (item.status.toLowerCase()) {
+                            switch ((item.status ?? '').toLowerCase()) {
                                 case 'stand by':
                                     statusBadge = '<span class="badge bg-success">Stand By</span>';
                                     break;
@@ -150,7 +150,7 @@
                                     statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
                                     break;
                                 default:
-                                    statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+                                    statusBadge = `<span class="badge bg-secondary">${item.status ?? '-'}</span>`;
                                     break;
                             }
 
@@ -159,29 +159,27 @@
                                 , item.id
                                 , tanggalUpdate
                                 , jamUpdate
-                                , item.mobil
+                                , item.mobil ?? '-'
                                 , statusBadge
-                                , item.pemakai
-                                , item.driver
-                                , item.tujuan
-                                , item.keterangan
-                                , item.pic_update
+                                , item.nama_pemakai ?? '-'
+                                , item.driver ?? '-'
+                                , item.tujuan ?? '-'
+                                , item.keterangan ?? '-'
+                                , item.pic_update ?? '-'
                             ]);
+
                         });
 
-                        //table.clear().rows.add(tableData).draw();
-                        const currentPage = table.page(); // simpan halaman saat ini
-                        table.clear().rows.add(tableData).draw(false); // false supaya tetap di halaman sekarang
-                        table.page(currentPage).draw(false); // kembali ke halaman sebelumnya
 
-                        $('#loading').hide(); // Sembunyikan spinner setelah data selesai dimuat
+                        const currentPage = table.page();
+                        table.clear().rows.add(tableData).draw(false);
+                        table.page(currentPage).draw(false);
 
-                        if (isFirstLoad) {
-                            isFirstLoad = false; // Mengatur flag agar spinner tidak muncul di pemuatan berikutnya
-                        }
+                        $('#loading').hide();
+                        if (isFirstLoad) isFirstLoad = false;
                     }
                     , error: function() {
-                        $('#loading').hide(); // Sembunyikan spinner jika terjadi error
+                        $('#loading').hide();
                     }
                 });
             }

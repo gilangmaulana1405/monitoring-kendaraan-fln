@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('history_kendaraans', function (Blueprint $table) {
             $table->uuid('id')->primary(); // Ganti id auto-increment menjadi uuid
             $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade');
-            $table->string('nama_mobil');
-            $table->string('nopol');
-            $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
+            // $table->string('nama_mobil');
+            // $table->string('nopol');
+            // $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
             $table->string('nama_pemakai')->nullable();
             $table->string('departemen')->nullable();
             $table->string('driver')->nullable();
