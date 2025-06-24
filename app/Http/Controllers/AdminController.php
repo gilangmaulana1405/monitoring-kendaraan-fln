@@ -33,7 +33,7 @@ class AdminController extends Controller
                 // Pastikan kendaraan tersedia (relasi tidak null)
                 $namaMobil = $item->kendaraan->nama_mobil ?? '-';
                 $nopol = $item->kendaraan->nopol ?? '-';
-                $status = $item->kendaraan->status ?? '-';
+                $status = $item->status ?? '-';
 
                 // Gabungkan nama mobil dan nopol
                 $item->mobil = $namaMobil . '<br>(' . $nopol . ')';

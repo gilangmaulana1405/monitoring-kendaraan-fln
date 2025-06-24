@@ -50,6 +50,7 @@
                         <th>Tanggal Update</th>
                         <th>Jam</th>
                         <th>Mobil</th>
+                        <th>Status</th>
                         <th>Pemakai</th>
                         <th>Driver</th>
                         <th>Tujuan</th>
@@ -87,6 +88,9 @@
                         title: "Mobil"
                     }
                     , {
+                        title: "Status"
+                    }
+                    , {
                         title: "Pemakai"
                     }
                     , {
@@ -109,7 +113,7 @@
 
             function fetchData() {
                 if (isFirstLoad) {
-                    $('#loading').show();
+                    $('#loading').show(); // Menampilkan spinner hanya saat pemuatan pertama
                 }
 
                 $.ajax({
@@ -134,32 +138,50 @@
                                 , hour12: false
                             });
 
+                            let statusBadge = '';
+                            switch (item.status.toLowerCase()) {
+                                case 'stand by':
+                                    statusBadge = '<span class="badge bg-success">Stand By</span>';
+                                    break;
+                                case 'pergi':
+                                    statusBadge = '<span class="badge bg-warning text-dark">Pergi</span>';
+                                    break;
+                                case 'perbaikan':
+                                    statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
+                                    break;
+                                default:
+                                    statusBadge = `<span class="badge bg-secondary">${item.status}</span>`;
+                                    break;
+                            }
 
                             tableData.push([
                                 i + 1
                                 , item.id
                                 , tanggalUpdate
                                 , jamUpdate
-                                , item.mobil ?? '-'
-                                , item.nama_pemakai ?? '-'
-                                , item.driver ?? '-'
-                                , item.tujuan ?? '-'
-                                , item.keterangan ?? '-'
-                                , item.pic_update ?? '-'
+                                , item.mobil
+                                , statusBadge
+                                , item.pemakai
+                                , item.driver
+                                , item.tujuan
+                                , item.keterangan
+                                , item.pic_update
                             ]);
-
                         });
 
+                        //table.clear().rows.add(tableData).draw();
+                        const currentPage = table.page(); // simpan halaman saat ini
+                        table.clear().rows.add(tableData).draw(false); // false supaya tetap di halaman sekarang
+                        table.page(currentPage).draw(false); // kembali ke halaman sebelumnya
 
-                        const currentPage = table.page();
-                        table.clear().rows.add(tableData).draw(false);
-                        table.page(currentPage).draw(false);
+                        $('#loading').hide(); // Sembunyikan spinner setelah data selesai dimuat
 
-                        $('#loading').hide();
-                        if (isFirstLoad) isFirstLoad = false;
+                        if (isFirstLoad) {
+                            isFirstLoad = false; // Mengatur flag agar spinner tidak muncul di pemuatan berikutnya
+                        }
                     }
                     , error: function() {
-                        $('#loading').hide();
+                        $('#loading').hide(); // Sembunyikan spinner jika terjadi error
                     }
                 });
             }

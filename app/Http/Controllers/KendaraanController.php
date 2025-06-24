@@ -162,9 +162,8 @@ class KendaraanController extends Controller
         // Ambil data kendaraan
         $kendaraan = Kendaraan::findOrFail($request->id);
 
-        // Ambil history terakhir yang status-nya 'Pergi'
         $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
-            ->whereHas('kendaraan')
+            ->where('status', 'Pergi')
             ->latest()
             ->first();
 
@@ -197,6 +196,7 @@ class KendaraanController extends Controller
         // Simpan ke history (tanpa nama_mobil, nopol, status)
         HistoryKendaraan::create([
             'kendaraan_id' => $kendaraan->id,
+            'status' => $request->status,
             'nama_pemakai' => $namaPemakai,
             'departemen' => $departemen,
             'driver' => $driver,
