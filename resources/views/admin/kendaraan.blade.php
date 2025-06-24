@@ -76,9 +76,11 @@
                             <label>No Polisi</label>
                             <input type="text" class="form-control" name="nopol" required>
                         </div>
+
                         <div class="mb-3">
                             <label for="gambar_mobil" class="form-label">Gambar Mobil</label>
-                            <input type="file" class="form-control" id="gambar_mobil" name="gambar_mobil" accept="image/*" required>
+                            <input type="file" class="form-control" name="gambar_mobil" id="gambarMobilTambah" onchange="typeof previewGambar === 'function' && previewGambar(event)" accept="image/*" />
+                            <img id="previewGambar" class="img-fluid mt-2" style="max-height: 200px; width: 200px; display: none;">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -90,6 +92,7 @@
         </div>
     </div>
 
+    {{-- modal edit --}}
     @foreach($kendaraans as $kendaraan)
     <div class="modal fade" id="editKendaraanModal-{{ $kendaraan->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -110,10 +113,18 @@
                             <label for="editNopol-{{ $kendaraan->id }}">Nopol</label>
                             <input type="text" class="form-control" name="nopol" id="editNopol-{{ $kendaraan->id }}" value="{{ $kendaraan->nopol }}">
                         </div>
+
                         <div class="mb-3">
-                            <label for="editGambarMobil-{{ $kendaraan->id }}">Username</label>
-                            <input type="file" class="form-control" name="gambar_mobil" id="editGambarMobil-{{ $kendaraan->id }}" value="{{ $kendaraan->gambar_mobil }}">
+                            <label for="editGambarMobil-{{ $kendaraan->id }}">Gambar Mobil Saat Ini</label><br>
+                            <img src="{{ asset('storage/mobil/' . $kendaraan->gambar_mobil) }}" alt="Gambar Mobil" class="img-fluid mb-2" style="max-height: 200px; width: 200px;">
                         </div>
+
+                        <div class="mb-3">
+                            <label for="editGambarMobil-{{ $kendaraan->id }}">Ganti Gambar</label>
+                            <input type="file" class="form-control" name="gambar_mobil" id="editGambarMobil-{{ $kendaraan->id }}" onchange="previewGambar(event, '{{ $kendaraan->id }}')">
+                            <img id="previewGambar-{{ $kendaraan->id }}" class="img-fluid mt-2" style="max-height: 200px; width: 200px;" />
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Simpan</button>
@@ -123,7 +134,6 @@
         </div>
     </div>
     @endforeach
-
 
     {{-- modal hapus --}}
     <div class="modal fade" id="hapusKendaraanModal" tabindex="-1" aria-labelledby="hapusKendaraanModalLabel" aria-hidden="true">
@@ -192,9 +202,8 @@
                         let tableData = [];
 
                         $.each(data, function(i, item) {
-                            const gambarMobil = item.gambar_url ?
-                                `<img src="${item.gambar_url}" alt="Gambar Mobil" width="200" height="200">` :
-                                'Tidak ada gambar';
+                            const gambarMobil = `
+                            <img src="${item.gambar_url}" alt="Gambar Mobil" width="200" height="200">`;
 
                             tableData.push([
                                 i + 1
@@ -230,6 +239,31 @@
 
             fetchData(); // Ambil data pertama kali saat halaman dimuat
             setInterval(fetchData, 5000); // Ambil data setiap 5 detik tanpa spinner
+        });
+
+    </script>
+
+    <script>
+        function previewGambar(event, id = null) {
+            const input = event.target;
+            const preview = id ?
+                document.getElementById('previewGambar-' + id) :
+                document.getElementById('previewGambar');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $('#gambarMobilTambah').on('change', function(event) {
+            previewGambar(event);
         });
 
     </script>
@@ -274,7 +308,6 @@
                 }
             });
         });
-
 
         // edit
         $(document).on('submit', '[id^="form-edit-kendaraan-"]', function(e) {

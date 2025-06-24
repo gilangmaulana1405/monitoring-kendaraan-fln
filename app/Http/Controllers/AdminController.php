@@ -124,7 +124,6 @@ class AdminController extends Controller
         return response()->json(['message' => 'User berhasil dihapus!']);
     }
 
-
     public function gantiPassword(Request $request)
     {
         // Validasi input
@@ -164,16 +163,16 @@ class AdminController extends Controller
     {
         $data = Kendaraan::select('id', 'nama_mobil', 'nopol', 'gambar_mobil')
             ->orderBy('created_at', 'desc')
+            ->where('isActive', 1)
             ->get();
 
-        $data->transform(function ($item) {
-            if ($item->gambar_mobil) {
-                $item->gambar_url = asset('storage/mobil/' . $item->gambar_mobil);
-            } else {
-                $item->gambar_url = null;
-            }
-            return $item;
-        });
+            $data->transform(function ($item) {
+                $item->gambar_url = $item->gambar_mobil
+                    ? asset('storage/mobil/' . $item->gambar_mobil)
+                    : asset('storage/mobil/default.jpg');
+            
+                return $item;
+            });
 
         return response()->json($data);
     }
@@ -235,6 +234,7 @@ class AdminController extends Controller
             'nopol' => $nopol,
             'gambar_mobil' => $gambarPath,
             'status' => 'Stand By',
+            'isActive' => 1,
         ]);
 
         return response()->json(['message' => 'Kendaraan berhasil ditambahkan!']);
@@ -299,10 +299,19 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Kendaraan berhasil diperbarui.']);
     }
+    
     public function hapusKendaraan($id)
     {
-        $user = Kendaraan::findOrFail($id);
-        $user->delete();
+        $kendaraan = Kendaraan::findOrFail($id);
+
+        // Hapus file gambar jika ada
+        if ($kendaraan->gambar_mobil && Storage::disk('public')->exists('mobil/' . $kendaraan->gambar_mobil)) {
+            Storage::disk('public')->delete('mobil/' . $kendaraan->gambar_mobil);
+        }
+
+        // Soft delete (update isActive ke 0)
+        $kendaraan->isActive = 0;
+        $kendaraan->save();
 
         return response()->json(['message' => 'Kendaraan berhasil dihapus!']);
     }

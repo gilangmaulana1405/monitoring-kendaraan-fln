@@ -16,6 +16,7 @@ class Kendaraan extends Model
         'nopol',
         'gambar_mobil',
         'status',
+        'isActive',
     ];
 
     // Kendaraan.php
