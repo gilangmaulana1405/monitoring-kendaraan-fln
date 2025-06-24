@@ -34,22 +34,22 @@ class AdminController extends Controller
                 $namaMobil = $item->kendaraan->nama_mobil ?? '-';
                 $nopol = $item->kendaraan->nopol ?? '-';
                 $status = $item->kendaraan->status ?? '-';
-    
+
                 // Gabungkan nama mobil dan nopol
                 $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
-    
+
                 // Gabungkan nama pemakai dan departemen
                 $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
-    
+
                 // Tambahkan properti status untuk badge di view
                 $item->status = $status;
-    
+
                 return $item;
             });
-    
+
         return response()->json($data);
     }
-    
+
 
     public function listUsers()
     {
@@ -60,25 +60,31 @@ class AdminController extends Controller
 
     public function getDataUsers()
     {
-        $data = User::orderBy('updated_at', 'desc')->get();
+        $data = User::where('isActive', 1)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         return response()->json($data);
     }
 
     public function tambahUsers(Request $request)
     {
         $request->validate([
-            'username' => 'required|unique:users,username',
+            'nama_lengkap' => 'required',
+            'username' => 'required|unique:users,username|min:3',
             'jabatan' => 'required',
-            'password' => 'required|min:3'
+            'password' => 'required|min:6'
         ], [
             'username.unique' => 'Username sudah ada.',
             'username.required' => 'Username wajib diisi.',
+            'username.min' => 'Username minimal 3 karakter.',
             'jabatan.required' => 'Jabatan wajib diisi.',
             'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 3 karakter.'
+            'password.min' => 'Password minimal 6 karakter.'
         ]);
 
         User::create([
+            'nama_lengkap' => ucwords(strtolower($request->nama_lengkap)),
             'username' => $request->username,
             'jabatan' => $request->jabatan,
             'password' => Hash::make($request->password)
@@ -90,15 +96,18 @@ class AdminController extends Controller
     public function editUsers(Request $request, $id)
     {
         $request->validate([
-            'username' => 'required|unique:users,username',
-            'jabatan' => 'required',
+            'nama_lengkap' => 'required',
+            'username' => 'required|unique:users,username|min:3',
+            'jabatan' => 'required'
         ], [
             'username.unique' => 'Username sudah ada.',
             'username.required' => 'Username wajib diisi.',
-            'jabatan.required' => 'Jabatan wajib diisi.'
+            'username.min' => 'Username minimal 3 karakter.',
+            'jabatan.required' => 'Jabatan wajib diisi.',
         ]);
 
         $user = User::findOrFail($id);
+        $user->nama_lengkap = ucwords(strtolower($request->nama_lengkap));
         $user->username = $request->username;
         $user->jabatan = $request->jabatan;
         $user->save();
@@ -109,10 +118,12 @@ class AdminController extends Controller
     public function hapusUsers($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->isActive = 0;
+        $user->save();
 
         return response()->json(['message' => 'User berhasil dihapus!']);
     }
+
 
     public function gantiPassword(Request $request)
     {

@@ -47,7 +47,8 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Nama Pengguna</th>
+                        <th>Nama</th>
+                        <th>username</th>
                         <th>Jabatan</th>
                         <th>Action</th>
                     </tr>
@@ -56,7 +57,7 @@
         </div>
     </div>
 
-    {{-- modal tambah data --}}
+    {{-- tambah data --}}
     <div class="modal fade" id="tambahUserModal" tabindex="-1" aria-labelledby="tambahDataModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form id="form-tambah-user">
@@ -67,6 +68,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Nama Lengkap</label>
+                            <input type="text" class="form-control" name="nama_lengkap" required>
+                        </div>
+
                         <div class="mb-3">
                             <label>Username</label>
                             <input type="text" class="form-control" name="username" required>
@@ -108,6 +114,10 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="id" id="editUserId-{{ $user->id }}" value="{{ $user->id }}">
+                        <div class="mb-3">
+                            <label for="editNamalengkap-{{ $user->id }}">Nama Lengkap</label>
+                            <input type="text" class="form-control" name="nama_lengkap" id="editNamalengkap-{{ $user->id }}" value="{{ $user->nama_lengkap }}">
+                        </div>
                         <div class="mb-3">
                             <label for="editUsername-{{ $user->id }}">Username</label>
                             <input type="text" class="form-control" name="username" id="editUsername-{{ $user->id }}" value="{{ $user->username }}">
@@ -207,7 +217,10 @@
                         , width: "40px"
                     }
                     , {
-                        title: "Nama Pengguna"
+                        title: "Nama"
+                    }
+                    , {
+                        title: "username"
                     }
                     , {
                         title: "Jabatan"
@@ -240,6 +253,7 @@
                         $.each(data, function(i, item) {
                             tableData.push([
                                 i + 1
+                                , item.nama_lengkap
                                 , item.username
                                 , item.jabatan
                                 , `<button class="btn btn-sm btn-info btn-password" data-bs-toggle="modal" data-bs-target="#gantiPasswordModal" data-id="${item.id}" data-username="${item.username}">Ganti Password</button>
@@ -332,7 +346,7 @@
                     alert(res.message);
                     $('#tambahUserModal').modal('hide');
                     form[0].reset();
-                    form.find('.is-invalid').removeClass('is-invalid'); 
+                    form.find('.is-invalid').removeClass('is-invalid');
                     form.find('.invalid-feedback').remove();
                 }
                 , error: function(xhr) {
@@ -342,7 +356,7 @@
                         for (let key in errors) {
                             message += errors[key][0] + '\n';
                         }
-                        alert(message); 
+                        alert(message);
                     } else {
                         alert('Terjadi kesalahan server.');
                         console.log(xhr.responseText); // Boleh aktifkan untuk lihat error detail
@@ -357,19 +371,20 @@
 
             const form = $(this);
             const id = form.find('input[name="id"]').val();
+            const nama_lengkap = form.find('input[name="nama_lengkap"]').val();
             const username = form.find('input[name="username"]').val();
             const jabatan = form.find('select[name="jabatan"]').val();
 
             $.ajax({
-                url: `/users/${id}/edit`, 
-                method: 'PUT'
+                url: `/users/${id}/edit`
+                , method: 'PUT'
                 , data: form.serialize()
                 , headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
                 , success: function(res) {
                     alert(res.message);
-                    $('#editUserModal-' + id).modal('hide'); 
+                    $('#editUserModal-' + id).modal('hide');
                 }
                 , error: function(xhr) {
                     if (xhr.status === 422) {

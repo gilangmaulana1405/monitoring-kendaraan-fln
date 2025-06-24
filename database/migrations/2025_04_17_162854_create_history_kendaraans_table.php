@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('kendaraan_id')->constrained('kendaraans')->onDelete('cascade');
             // $table->string('nama_mobil');
             // $table->string('nopol');
-            // $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
+            $table->enum('status', ['Stand By', 'Pergi', 'Perbaikan']);
             $table->string('nama_pemakai')->nullable();
             $table->string('departemen')->nullable();
             $table->string('driver')->nullable();

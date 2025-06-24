@@ -50,7 +50,6 @@
                         <th>Tanggal Update</th>
                         <th>Jam</th>
                         <th>Mobil</th>
-                        <th>Status</th>
                         <th>Pemakai</th>
                         <th>Driver</th>
                         <th>Tujuan</th>
@@ -86,9 +85,6 @@
                     }
                     , {
                         title: "Mobil"
-                    }
-                    , {
-                        title: "Status"
                     }
                     , {
                         title: "Pemakai"
@@ -138,21 +134,6 @@
                                 , hour12: false
                             });
 
-                            let statusBadge = '';
-                            switch ((item.status ?? '').toLowerCase()) {
-                                case 'stand by':
-                                    statusBadge = '<span class="badge bg-success">Stand By</span>';
-                                    break;
-                                case 'pergi':
-                                    statusBadge = '<span class="badge bg-warning text-dark">Pergi</span>';
-                                    break;
-                                case 'perbaikan':
-                                    statusBadge = '<span class="badge bg-danger">Perbaikan</span>';
-                                    break;
-                                default:
-                                    statusBadge = `<span class="badge bg-secondary">${item.status ?? '-'}</span>`;
-                                    break;
-                            }
 
                             tableData.push([
                                 i + 1
@@ -160,7 +141,6 @@
                                 , tanggalUpdate
                                 , jamUpdate
                                 , item.mobil ?? '-'
-                                , statusBadge
                                 , item.nama_pemakai ?? '-'
                                 , item.driver ?? '-'
                                 , item.tujuan ?? '-'
