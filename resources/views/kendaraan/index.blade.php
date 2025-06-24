@@ -10,16 +10,49 @@
 
 <body>
     <div class="container mt-5">
-
-        <div class="text-center" style="margin-top: -20px;">
-            <img src="img/fln-logo.png" width="120px" alt="">
+        {{-- Logo di tengah --}}
+        <div class="text-center mb-4">
+            <img src="{{ asset('img/fln-logo.png') }}" width="120px" alt="Logo">
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Monitoring Kendaraan</h2>
-            <span style="white-space: nowrap;">
-                {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-            </span>
+        {{-- Baris utama: kiri judul, kanan info login --}}
+        <div class="d-flex justify-content-between align-items-start mb-4">
+
+            {{-- Kiri: Judul --}}
+            <div>
+                <h2 class="mb-0">Monitoring Kendaraan</h2>
+            </div>
+
+            {{-- Kanan: Area Login/Logout, Tanggal --}}
+            <div class="text-end">
+                @guest
+                {{-- Jika belum login: tampilkan tombol login --}}
+                <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm mb-1">Login</a>
+
+                {{-- Tanggal tetap tampil --}}
+                <div>
+                    <span>{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
+                </div>
+                @endguest
+
+                @auth
+                {{-- Jika sudah login: tampilkan selamat datang --}}
+                <div class="mb-1">
+                    <small>Selamat datang, <strong>{{ Auth::user()->username }}</strong></small>
+                </div>
+
+                {{-- Tanggal --}}
+                <div class="mb-2">
+                    <span>{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
+                </div>
+
+                {{-- Tombol logout --}}
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button class="btn btn-danger btn-sm">Logout</button>
+                </form>
+                @endauth
+            </div>
         </div>
 
         <table class="table table-bordered">
@@ -44,7 +77,7 @@
                     </td>
                     <td>{{ $k->nama_mobil }}</td>
                     <td>
-                         <img src="{{ $k->image_path }}" alt="Gambar {{ $k->nopol }}" style="width:100px; height:100px; object-fit:cover;">
+                        <img src="{{ $k->image_path }}" alt="Gambar {{ $k->nopol }}" style="width:100px; height:100px; object-fit:cover;">
                     </td>
                     <td>{{ $k->nopol }}</td>
                     <td>

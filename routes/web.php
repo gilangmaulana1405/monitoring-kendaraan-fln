@@ -8,7 +8,7 @@ use App\Http\Controllers\KendaraanController;
 
 
 Route::get('/', function () {
-    return redirect('/login');
+    return redirect('/monitoring-kendaraan');
 });
 
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index'])->name('monitoring.kendaraan');
