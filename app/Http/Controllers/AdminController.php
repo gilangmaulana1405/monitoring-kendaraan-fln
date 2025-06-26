@@ -303,16 +303,16 @@ class AdminController extends Controller
     public function hapusKendaraan($id)
     {
         $kendaraan = Kendaraan::findOrFail($id);
-
+    
         // Hapus file gambar jika ada
         if ($kendaraan->gambar_mobil && Storage::disk('public')->exists('mobil/' . $kendaraan->gambar_mobil)) {
             Storage::disk('public')->delete('mobil/' . $kendaraan->gambar_mobil);
         }
-
-        // Soft delete (update isActive ke 0)
+    
         $kendaraan->isActive = 0;
         $kendaraan->save();
-
-        return response()->json(['message' => 'Kendaraan berhasil dihapus!']);
+    
+        return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil dihapus!");
     }
+    
 }

@@ -65,7 +65,18 @@
                 </div>
             </div>
 
+            {{-- alert untuk crud kendaraan --}}
+            @if (session('success'))
+            <div id="alertBox" class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+                {!! session('success') !!}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+
+            {{-- alert untuk input in/out --}}
             <div id="alertBox"></div>
+
             <div class="row mt-3">
                 @foreach($kendaraan as $k)
                 <div class="col-md-4 mb-4 kendaraan-card" data-id="{{ $k->id }}">
@@ -246,6 +257,7 @@
     <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
 
+    {{-- input in/out --}}
     <script>
         // updated_at dinamis berubah ubah
         dayjs.locale('id-custom', {
@@ -425,7 +437,7 @@
                                 document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
                                 setTimeout(() => {
                                     document.getElementById("alertBox").innerHTML = "";
-                                }, 3000); // hilang dalam 2 detik
+                                }, 3000);
 
 
                                 // Update badge status (local update)
@@ -463,7 +475,19 @@
 
     </script>
 
+    <script>
+        // Hilangkan alert setelah 3 detik
+        setTimeout(() => {
+            const alert = document.getElementById('alertBox');
+            if (alert) {
+                // Tambahkan class fade-out dan hapus setelah animasi
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(() => alert.remove(), 500); // Tunggu animasi fade selesai
+            }
+        }, 3000);
 
+    </script>
 
 </body>
 
