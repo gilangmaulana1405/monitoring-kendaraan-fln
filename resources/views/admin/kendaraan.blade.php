@@ -8,52 +8,61 @@
 
     {{-- datatables non cdn / offline --}}
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/bootstrap.bundle.min.css') }}" rel="stylesheet">
+
     <script src="{{ asset('assets/jquery/jquery-3.6.0.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('assets/datatables/css/jquery.dataTables.min.css') }}">
 </head>
 
-<body>
-    <div class="container mt-5">
-        <div class="text-center" style="margin-top: -20px;">
-            <img src="/img/fln-logo.png" width="120px" alt="">
-        </div>
+<body class="d-flex" style="min-height: 100vh;">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">List Kendaraan</h2>
+    <!-- Sidebar -->
+    @include('components.sidebar')
 
-            <div class="d-flex flex-column align-items-end">
-                <span style="white-space: nowrap;">
-                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-                </span>
+    <!-- Content -->
+    <div class="flex-grow-1 p-4 bg-light">
+        <div class="container mt-3">
+            <div class="text-center" style="margin-top: -20px;">
+                <img src="/img/fln-logo.png" width="120px" alt="">
+            </div>
 
-                <div class="d-flex mt-2">
-                    <button class="btn btn-primary btn-sm me-3" id="btnTambah" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">
-                        Tambah Kendaraan
-                    </button>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">List Kendaraan</h2>
 
-                    <a href="/admin" class="btn btn-outline-secondary btn-sm">
-                        <i class="fa fa-arrow-left"></i> Kembali
-                    </a>
+                <div class="d-flex flex-column align-items-end">
+                    <span style="white-space: nowrap;">
+                        {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                    </span>
+
+                    <div class="d-flex mt-2">
+                        <button class="btn btn-primary btn-sm me-3" id="btnTambah" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">
+                            Tambah Kendaraan
+                        </button>
+
+                        <a href="/admin" class="btn btn-outline-secondary btn-sm">
+                            <i class="fa fa-arrow-left"></i> Kembali
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="loading" style="text-align: center; margin: 30px 0; display: none;">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-        </div>
+            <div id="loading" style="text-align: center; margin: 30px 0; display: none;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+            </div>
 
-        <div class="table-responsive">
-            <table id="kendaraan-table" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Mobil</th>
-                        <th>No Polisi</th>
-                        <th>Gambar</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table id="kendaraan-table" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Mobil</th>
+                            <th>No Polisi</th>
+                            <th>Gambar</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
 

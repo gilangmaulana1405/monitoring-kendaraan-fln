@@ -8,9 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Events\KendaraanUpdated;
 use App\Models\HistoryKendaraan;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
 
