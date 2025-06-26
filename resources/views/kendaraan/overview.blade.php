@@ -108,11 +108,10 @@
                                 <div class="mt-2">
                                     <a href="{{ route('edit.kendaraan', $k->id) }}" class="btn btn-sm btn-warning">Edit</a>
 
-                                    <form action="{{ route('hapus.kendaraan', $k->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus kendaraan ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                    </form>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
+                                        Hapus
+                                    </button>
+
                                 </div>
                                 @endif
                                 @endauth
@@ -192,10 +191,54 @@
                         </div>
                     </div>
                 </div>
+
+
+                {{-- modal hapus --}}
+                <div class="modal fade" id="hapusKendaraanModal{{ $k->id }}" tabindex="-1" aria-labelledby="hapusModalLabel{{ $k->id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ route('hapus.kendaraan', $k->id) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="hapusModalLabel{{ $k->id }}">Konfirmasi Hapus</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <p>Yakin ingin menghapus kendaraan berikut?</p>
+                                            <ul>
+                                                <li>Nama Mobil : <strong>{{ $k->nama_mobil }}</strong></li>
+                                                <li>No Polisi : <strong>{{ $k->nopol }}</strong></li>
+                                            </ul>
+                                        </div>
+
+                                        <div class="col-md-7 text-end">
+                                            <img src="{{ asset('/storage/mobil/' . $k->gambar_mobil) }}" alt="Gambar Mobil" class="img-fluid" style="height:250px; width:500px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                                </div>
+                            </form>
+
+
+                        </div>
+                    </div>
+                </div>
+
                 @endforeach
             </div>
         </div>
     </div>
+
+
+
 
     {{-- offline --}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
@@ -419,6 +462,8 @@
         });
 
     </script>
+
+
 
 </body>
 

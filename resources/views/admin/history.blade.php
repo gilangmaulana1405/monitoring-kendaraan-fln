@@ -24,7 +24,7 @@
                 <img src="/img/fln-logo.png" width="120px" alt="">
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="mb-0">History Kendaraan</h2>
 
                 <div class="d-flex flex-column align-items-end">
@@ -33,9 +33,9 @@
                     </span>
 
                     <div class="d-flex mt-2">
-                        <a href="/admin" class="btn btn-outline-secondary btn-sm">
+                        {{-- <a href="/admin" class="btn btn-outline-secondary btn-sm">
                             <i class="fa fa-arrow-left"></i> Kembali
-                        </a>
+                        </a> --}}
                     </div>
                 </div>
             </div>

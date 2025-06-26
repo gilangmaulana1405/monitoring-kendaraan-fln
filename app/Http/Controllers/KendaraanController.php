@@ -86,10 +86,10 @@ class KendaraanController extends Controller
 
     public function getData()
     {
-        // Urutkan kendaraan berdasarkan status, lalu updated_at descending
-        $kendaraan = Kendaraan::orderByRaw("FIELD(status, 'Stand By', 'Pergi', 'Perbaikan')")
-            ->orderBy('updated_at', 'desc') // Sort terbaru
-            ->take(8)   // Ambil hanya 8 kendaraan
+        $kendaraan = Kendaraan::where('isActive', 1)
+            ->orderByRaw("FIELD(status, 'Stand By', 'Pergi', 'Perbaikan')")
+            ->orderBy('updated_at', 'desc')
+            ->take(8)
             ->get();
 
         // Gabungkan dengan history terakhir untuk setiap kendaraan
@@ -123,10 +123,10 @@ class KendaraanController extends Controller
     // List kendaraan untuk input keluar masuk kendaraan
     public function kendaraan()
     {
-        $kendaraan = Kendaraan::all()->map(function ($k) {
+        $kendaraan = Kendaraan::where('isActive', 1)->get()->map(function ($k) {
             $k->image_path = $this->getImagePath($k->nopol);
             return $k;
-        });
+        });        
 
         $kendaraan = $this->sortByStatus($kendaraan);
 

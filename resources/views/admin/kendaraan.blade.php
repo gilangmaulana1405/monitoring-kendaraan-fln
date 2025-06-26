@@ -38,10 +38,6 @@
                         <button class="btn btn-primary btn-sm me-3" id="btnTambah" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">
                             Tambah Kendaraan
                         </button>
-
-                        <a href="/admin" class="btn btn-outline-secondary btn-sm">
-                            <i class="fa fa-arrow-left"></i> Kembali
-                        </a>
                     </div>
                 </div>
             </div>
@@ -144,25 +140,7 @@
     </div>
     @endforeach
 
-    {{-- modal hapus --}}
-    <div class="modal fade" id="hapusKendaraanModal" tabindex="-1" aria-labelledby="hapusKendaraanModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="hapusKendaraanModalLabel">Konfirmasi Hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Yakin ingin menghapus kendaraan <strong id="hapusNamaMobil"></strong> (<strong id="hapusNopol"></strong>)?</p>
-                    <input type="hidden" id="hapusKendaraanId">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="konfirmasiHapusBtnKendaraan">Hapus</button>
-                </div>
-            </div>
-        </div>
-    </div>
+   
 
 
     <!-- DataTables non cdn offline JS -->
@@ -356,42 +334,7 @@
             });
         });
 
-        // hapus
-        let kendaraanIdToDelete = null;
-        $(document).on('click', '.btn-hapus-kendaraan', function() {
-            let kendaraanIdToDelete = $(this).data('id');
-            let nama_mobil = $(this).data('nama-mobil');
-            let nopol = $(this).data('nopol');
-
-            $('#hapusKendaraanId').val(kendaraanIdToDelete);
-            $('#hapusNamaMobil').text(nama_mobil);
-            $('#hapusNopol').text(nopol);
-        });
-
-        $('#konfirmasiHapusBtnKendaraan').click(function() {
-            let kendaraanIdToDelete = $('#hapusKendaraanId').val();
-            if (!kendaraanIdToDelete) {
-                console.log('ID kendaraan kosong!');
-                return;
-            }
-
-            $.ajax({
-                url: '/kendaraan/' + kendaraanIdToDelete + '/hapus'
-                , type: 'POST'
-                , data: {
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                    , _method: 'DELETE'
-                }
-                , success: function(res) {
-                    alert(res.message);
-                    $('#hapusKendaraanModal').modal('hide');
-                }
-                , error: function(xhr) {
-                    alert('Gagal menghapus data. Silakan coba lagi.');
-                    console.log(xhr.responseText);
-                }
-            });
-        });
+       
 
     </script>
 
