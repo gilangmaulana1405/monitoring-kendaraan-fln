@@ -166,13 +166,13 @@ class AdminController extends Controller
             ->where('isActive', 1)
             ->get();
 
-            $data->transform(function ($item) {
-                $item->gambar_url = $item->gambar_mobil
-                    ? asset('storage/mobil/' . $item->gambar_mobil)
-                    : asset('storage/mobil/default.jpg');
-            
-                return $item;
-            });
+        $data->transform(function ($item) {
+            $item->gambar_url = $item->gambar_mobil
+                ? asset('storage/mobil/' . $item->gambar_mobil)
+                : asset('storage/mobil/default.jpg');
+
+            return $item;
+        });
 
         return response()->json($data);
     }
@@ -181,10 +181,9 @@ class AdminController extends Controller
     {
         $request->validate([
             'nama_mobil' => 'required|string|max:255',
-            'nopol' => 'required|string|max:255|unique:kendaraans,nopol',
-            'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'nopol' => 'required|string|max:255',
+            'gambar_mobil' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'nopol.unique' => 'Error : Nopol kendaraan telah tersedia!',
             'gambar_mobil.max' => 'Error : Ukuran gambar maksimal 2MB.',
             'gambar_mobil.mimes' => 'Error : Format gambar harus jpeg, png, atau jpg.',
             'gambar_mobil.image' => 'Error : File yang diunggah harus berupa gambar.',
@@ -193,52 +192,63 @@ class AdminController extends Controller
         $nama_mobil = ucwords(strtolower($request->nama_mobil));
         $nopol = strtoupper($request->nopol);
 
-        $gambarPath = null;
-
-        if ($request->hasFile('gambar_mobil')) {
-            $file = $request->file('gambar_mobil');
-
-            $extension = $file->getClientOriginalExtension();
-            $filename = "{$nama_mobil}_{$nopol}.{$extension}";
-
-            // Buat image instance
-            $image = Image::make($file->getPathname());
-
-            // Resize max width 1024 px
-            $image->resize(1024, null, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
-
-            // Simpan gambar ke temporary path (memory) dulu
-            $tempPath = sys_get_temp_dir() . '/' . $filename;
-            $quality = 90;
-            $image->save($tempPath, $quality);
-
-            // Kompres sampai <= 1MB atau quality minimal 30
-            while (filesize($tempPath) > 1024 * 1024 && $quality >= 30) {
-                $quality -= 5;
-                $image->save($tempPath, $quality);
-            }
-
-            $gambarPath = $filename;
-
-            Storage::disk('public')->put("mobil/{$filename}", file_get_contents($tempPath));
-
-            // Hapus file temporary
-            unlink($tempPath);
+        // Cek apakah sudah ada kendaraan dengan nopol aktif
+        $aktif = Kendaraan::where('nopol', $nopol)->where('isActive', 1)->first();
+        if ($aktif) {
+            return back()->withErrors(['nopol' => 'Error : Nopol kendaraan <strong>' . $request->nopol . '</strong> telah tersedia!'])->withInput();
         }
 
-        $kendaraan = Kendaraan::create([
-            'nama_mobil' => $nama_mobil,
-            'nopol' => $nopol,
-            'gambar_mobil' => $gambarPath,
-            'status' => 'Stand By',
-            'isActive' => 1,
-        ]);
+        // Cek apakah ada kendaraan nonaktif (soft delete)
+        $nonaktif = Kendaraan::where('nopol', $nopol)->where('isActive', 0)->first();
 
-        return response()->json(['message' => 'Kendaraan berhasil ditambahkan!']);
+        // Proses gambar
+        $file = $request->file('gambar_mobil');
+        $extension = $file->getClientOriginalExtension();
+        $filename = "{$nama_mobil}_{$nopol}.{$extension}";
+
+        $image = Image::make($file->getPathname());
+        $image->resize(1024, null, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+
+        $tempPath = sys_get_temp_dir() . '/' . $filename;
+        $quality = 90;
+        $image->save($tempPath, $quality);
+
+        while (filesize($tempPath) > 1024 * 1024 && $quality >= 30) {
+            $quality -= 5;
+            $image->save($tempPath, $quality);
+        }
+
+        Storage::disk('public')->put("mobil/{$filename}", file_get_contents($tempPath));
+        unlink($tempPath);
+
+        // Simpan ke DB
+        if ($nonaktif) {
+            // Update data lama (revive)
+            $nonaktif->update([
+                'nama_mobil' => $nama_mobil,
+                'gambar_mobil' => $filename,
+                'status' => 'Stand By',
+                'isActive' => 1,
+            ]);
+            $kendaraan = $nonaktif;
+        } else {
+            // Buat data baru
+            $kendaraan = Kendaraan::create([
+                'nama_mobil' => $nama_mobil,
+                'nopol' => $nopol,
+                'gambar_mobil' => $filename,
+                'status' => 'Stand By',
+                'isActive' => 1,
+            ]);
+        }
+
+        return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil ditambahkan!");
     }
+
+
     public function editKendaraan(Request $request)
     {
         $request->validate([
@@ -247,7 +257,7 @@ class AdminController extends Controller
             'nopol' => 'required|string|max:255|unique:kendaraans,nopol,' . $request->id,
             'gambar_mobil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'nopol.unique' => 'Error : Nopol kendaraan telah tersedia!',
+            'nopol.unique' => 'Error : Nopol kendaraan <strong>' . $request->nopol . '</strong> telah terdaftar sebelumnya.',
             'gambar_mobil.max' => 'Error : Ukuran gambar maksimal 2MB.',
             'gambar_mobil.mimes' => 'Error : Format gambar harus jpeg, png, atau jpg.',
             'gambar_mobil.image' => 'Error : File yang diunggah harus berupa gambar.',
@@ -255,17 +265,16 @@ class AdminController extends Controller
 
         $kendaraan = Kendaraan::findOrFail($request->id);
 
+        $oldNama = $kendaraan->nama_mobil;
+        $oldNopol = $kendaraan->nopol;
+
         $nama_mobil = ucwords(strtolower($request->nama_mobil));
         $nopol = strtoupper($request->nopol);
 
         $gambarPath = $kendaraan->gambar_mobil;
 
+        // Upload gambar baru
         if ($request->hasFile('gambar_mobil')) {
-            // Hapus gambar lama jika ada
-            if ($kendaraan->gambar_mobil && Storage::disk('public')->exists("mobil/{$kendaraan->gambar_mobil}")) {
-                Storage::disk('public')->delete("mobil/{$kendaraan->gambar_mobil}");
-            }
-
             $file = $request->file('gambar_mobil');
             $extension = $file->getClientOriginalExtension();
             $filename = "{$nama_mobil}_{$nopol}." . $extension;
@@ -285,34 +294,57 @@ class AdminController extends Controller
                 $image->save($tempPath, $quality);
             }
 
-            // Simpan path baru
-            $gambarPath = $filename;
+            // Hapus gambar lama hanya jika nama & nopol tidak berubah
+            if (
+                $oldNama === $nama_mobil &&
+                $oldNopol === $nopol &&
+                $kendaraan->gambar_mobil &&
+                Storage::disk('public')->exists("mobil/{$kendaraan->gambar_mobil}")
+            ) {
+                Storage::disk('public')->delete("mobil/{$kendaraan->gambar_mobil}");
+            }
+
             Storage::disk('public')->put("mobil/{$filename}", file_get_contents($tempPath));
             unlink($tempPath);
+
+            $gambarPath = $filename;
+        } else {
+            // Tidak upload gambar, cek apakah perlu rename
+            if ($gambarPath) {
+                $oldPath = "mobil/{$gambarPath}";
+                $extension = pathinfo($gambarPath, PATHINFO_EXTENSION);
+                $newFilename = "{$nama_mobil}_{$nopol}.{$extension}";
+                $newPath = "mobil/{$newFilename}";
+
+                if ($gambarPath !== $newFilename && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->move($oldPath, $newPath);
+                    $gambarPath = $newFilename;
+                }
+            }
         }
 
+        // Simpan perubahan
         $kendaraan->update([
             'nama_mobil' => $nama_mobil,
             'nopol' => $nopol,
             'gambar_mobil' => $gambarPath,
         ]);
 
-        return response()->json(['message' => 'Kendaraan berhasil diperbarui.']);
+        return redirect('/kendaraan')->with('success', "Kendaraan berhasil diubah!");
     }
-    
+
     public function hapusKendaraan($id)
     {
         $kendaraan = Kendaraan::findOrFail($id);
-    
+
         // Hapus file gambar jika ada
         if ($kendaraan->gambar_mobil && Storage::disk('public')->exists('mobil/' . $kendaraan->gambar_mobil)) {
             Storage::disk('public')->delete('mobil/' . $kendaraan->gambar_mobil);
         }
-    
+
         $kendaraan->isActive = 0;
         $kendaraan->save();
-    
+
         return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil dihapus!");
     }
-    
 }

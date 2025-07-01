@@ -9,8 +9,8 @@
 
     {{-- offline --}}
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/bootstrap.bundle.min.css') }}" rel="stylesheet">
 
+    <script src="{{ asset('assets/jquery/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/pusher-8.4.0.min.js') }}"></script>
     <script src="{{ asset('js/echo-1.11.1.js') }}"></script>
 
@@ -45,7 +45,7 @@
                     </div>
 
                     @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
-                    <a href="{{ route('tambah.kendaraan') }}" class="btn btn-sm btn-primary mt-1">+ Tambah Kendaraan</a>
+                    <button type="button"" class=" btn btn-sm btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">+ Tambah Kendaraan</button>
                     @endif
 
                     <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -65,14 +65,23 @@
                 </div>
             </div>
 
-            {{-- alert untuk crud kendaraan --}}
+            {{-- alert sukses untuk crud kendaraan --}}
             @if (session('success'))
             <div id="alertBox" class="alert alert-success alert-dismissible fade show mt-4" role="alert">
                 {!! session('success') !!}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             @endif
 
+            {{-- Alert error dari validasi --}}
+            @if ($errors->any())
+            <div id="alertBox" class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                    <li>{!! $error !!}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
             {{-- alert untuk input in/out --}}
             <div id="alertBox"></div>
@@ -117,7 +126,9 @@
                                 @auth
                                 @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
                                 <div class="mt-2">
-                                    <a href="{{ route('edit.kendaraan', $k->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
+                                        Edit
+                                    </button>
 
                                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
                                         Hapus
@@ -132,6 +143,7 @@
                     </div>
                 </div>
 
+                {{-- update status kendaraan --}}
                 <div class="modal fade" id="modal{{ $k->id }}" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -203,6 +215,39 @@
                     </div>
                 </div>
 
+                {{-- modal tambah --}}
+                <div class="modal fade" id="tambahKendaraanModal" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form action="{{ route('tambah.kendaraan') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTambahLabel">Tambah Kendaraan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label>Nama Mobil</label>
+                                        <input type="text" class="form-control" name="nama_mobil" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>No Polisi</label>
+                                        <input type="text" class="form-control" name="nopol" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="gambar_mobil" class="form-label">Gambar Mobil</label>
+                                        <input type="file" class="form-control" name="gambar_mobil" id="gambarMobilTambah" onchange="typeof previewGambar === 'function' && previewGambar(event)" accept="image/*" required />
+                                        <img id="previewGambar" class="img-fluid mt-2" style="max-height: 200px; width: 200px; display: none;">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Simpan</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 {{-- modal hapus --}}
                 <div class="modal fade" id="hapusKendaraanModal{{ $k->id }}" tabindex="-1" aria-labelledby="hapusModalLabel{{ $k->id }}" aria-hidden="true">
@@ -237,9 +282,49 @@
                                     <button type="submit" class="btn btn-danger">Ya, Hapus</button>
                                 </div>
                             </form>
-
-
                         </div>
+                    </div>
+                </div>
+
+                {{-- modal edit --}}
+                <div class="modal fade" id="editKendaraanModal-{{ $k->id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                       <form action="{{ route('edit.kendaraan', $k->id) }}" method="POST" enctype="multipart/form-data">
+                           @csrf
+                           @method('PUT')
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Kendaraan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="id" id="editKendaraanId-{{ $k->id }}" value="{{ $k->id }}">
+                                    <div class="mb-3">
+                                        <label for="editNamaMobil-{{ $k->id }}">Nama Mobil</label>
+                                        <input type="text" class="form-control" name="nama_mobil" id="editNamaMobil-{{ $k->id }}" value="{{ $k->nama_mobil }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editNopol-{{ $k->id }}">Nopol</label>
+                                        <input type="text" class="form-control" name="nopol" id="editNopol-{{ $k->id }}" value="{{ $k->nopol }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="editGambarMobil-{{ $k->id }}">Gambar Mobil Saat Ini</label><br>
+                                        <img src="{{ asset('storage/mobil/' . $k->gambar_mobil) }}" alt="Gambar Mobil" class="img-fluid mb-2" style="max-height: 200px; width: 200px;">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="editGambarMobil-{{ $k->id }}">Ganti Gambar</label>
+                                        <input type="file" class="form-control" name="gambar_mobil" id="editGambarMobil-{{ $k->id }}" onchange="previewGambar(event, '{{ $k->id }}')">
+                                        <img id="previewGambar-{{ $k->id }}" class="img-fluid mt-2" style="max-height: 200px; width: 200px;" />
+                                    </div>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Edit</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -250,12 +335,49 @@
 
 
 
-
     {{-- offline --}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/dayjs.min.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
+
+
+    <script>
+        // preview gambar
+        function previewGambar(event, id = null) {
+            const input = event.target;
+            const preview = id ?
+                document.getElementById('previewGambar-' + id) :
+                document.getElementById('previewGambar');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $('#gambarMobilTambah').on('change', function(event) {
+            previewGambar(event);
+        });
+
+        // alert
+        setTimeout(() => {
+            const alert = document.getElementById('alertBox');
+            if (alert) {
+                // Tambahkan class fade-out dan hapus setelah animasi
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(() => alert.remove(), 500); // Tunggu animasi fade selesai
+            }
+        }, 3000);
+
+    </script>
 
     {{-- input in/out --}}
     <script>
@@ -472,20 +594,6 @@
                 });
             });
         });
-
-    </script>
-
-    <script>
-        // Hilangkan alert setelah 3 detik
-        setTimeout(() => {
-            const alert = document.getElementById('alertBox');
-            if (alert) {
-                // Tambahkan class fade-out dan hapus setelah animasi
-                alert.classList.remove('show');
-                alert.classList.add('fade');
-                setTimeout(() => alert.remove(), 500); // Tunggu animasi fade selesai
-            }
-        }, 3000);
 
     </script>
 
