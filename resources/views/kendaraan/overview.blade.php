@@ -83,8 +83,8 @@
             </div>
             @endif
 
-            {{-- alert untuk input in/out --}}
-            <div id="alertBox"></div>
+            {{-- alert untuk input in/out dari js --}}
+            <div id="alertBoxUpdateStatus" class="mt-3"></div>
 
             <div class="row mt-3">
                 @foreach($kendaraan as $k)
@@ -289,9 +289,9 @@
                 {{-- modal edit --}}
                 <div class="modal fade" id="editKendaraanModal-{{ $k->id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
-                       <form action="{{ route('edit.kendaraan', $k->id) }}" method="POST" enctype="multipart/form-data">
-                           @csrf
-                           @method('PUT')
+                        <form action="{{ route('edit.kendaraan', $k->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            @method('PUT')
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title">Edit Kendaraan</h5>
@@ -556,9 +556,9 @@
                         .then(data => {
                             // console.log(data);
                             if (data.success) {
-                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
+                                document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
                                 setTimeout(() => {
-                                    document.getElementById("alertBox").innerHTML = "";
+                                    document.getElementById("alertBoxUpdateStatus").innerHTML = "";
                                 }, 3000);
 
 
@@ -583,10 +583,11 @@
                                 let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
                                 modal.hide();
 
+
                             } else {
-                                document.getElementById("alertBox").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, silahkan coba lagi.</div>`;
+                                document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, silahkan coba lagi.</div>`;
                                 setTimeout(() => {
-                                    document.getElementById("alertBox").innerHTML = "";
+                                    document.getElementById("alertBoxUpdateStatus").innerHTML = "";
                                 }, 3000);
                             }
                         })
