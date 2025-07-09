@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
             ['username' => 'flnga', 'nama_lengkap' => 'Flnga', 'password' => Hash::make('123456'), 'jabatan' => 'Admin GA'],
             ['username' => 'widiartip', 'nama_lengkap' => 'Widiarti Putri', 'password' => Hash::make('123456'), 'jabatan' => 'Staff GA'],
             ['username' => 'ades', 'nama_lengkap' => 'Ade Suyatna', 'password' => Hash::make('123456'), 'jabatan' => 'Staff GA'],
-            ['username' => 'dunyarih', 'nama_lengkap' => 'Dunyarih', 'password' => Hash::make('123456'), 'jabatan' => 'Security'],
+            ['username' => 'muhhajirin', 'nama_lengkap' => 'Muhhajirin', 'password' => Hash::make('123456'), 'jabatan' => 'Security'],
             ['username' => 'abubakar', 'nama_lengkap' => 'Abu Bakar', 'password' => Hash::make('123456'), 'jabatan' => 'Security'],
             ['username' => 'suratno', 'nama_lengkap' => 'Suratno', 'password' => Hash::make('123456'), 'jabatan' => 'Security'],
             ['username' => 'mikbalarief', 'nama_lengkap' => 'Mikbal Arief', 'password' => Hash::make('123456'), 'jabatan' => 'Security'],

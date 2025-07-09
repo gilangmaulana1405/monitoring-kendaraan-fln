@@ -14,7 +14,7 @@
       <div class="collapse" id="kendaraanMenu">
           {{-- <a href="{{ route('list.kendaraan') }}" class="text-white d-block py-1 ps-5 text-decoration-none">• List Kendaraan</a> --}}
           <a href="{{ route('kendaraan') }}" class="text-white d-block py-1 ps-5 text-decoration-none">• List Kendaraan</a>
-          <a href="{{ route('monitoring.kendaraan') }}" class="text-white d-block py-1 ps-5 text-decoration-none">• Monitoring</a>
+          {{-- <a href="{{ route('monitoring.kendaraan') }}" class="text-white d-block py-1 ps-5 text-decoration-none">• Monitoring</a> --}}
           <a href="{{ route('history.kendaraan') }}" class="text-white d-block py-1 ps-5 text-decoration-none">• History</a>
       </div>
 
