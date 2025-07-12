@@ -13,7 +13,7 @@ Route::get('/', function () {
 // === Monitoring Kendaraan (user & GA, Security) ===
 Route::get('/kendaraan', [KendaraanController::class, 'kendaraan'])->name('kendaraan');
 Route::get('/monitoring-kendaraan', [KendaraanController::class, 'index'])->name('monitoring.kendaraan');
-Route::get('/kendaraan/data', [KendaraanController::class, 'getData']); // public
+Route::get('/kendaraan/data', [KendaraanController::class, 'getData']); 
 
 Route::middleware(['auth', 'role:Admin GA,Staff GA,Security'])->group(function () {
     Route::put('/kendaraan/update', [KendaraanController::class, 'update'])->name('kendaraan.update');

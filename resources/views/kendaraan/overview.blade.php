@@ -341,7 +341,7 @@
     <script src="{{ asset('js/vendor/dayjs/plugin/relativeTime.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/locale/id.js') }}"></script>
 
-
+    {{-- preview gambar --}}
     <script>
         // preview gambar
         function previewGambar(event, id = null) {
@@ -554,13 +554,26 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            // console.log(data);
                             if (data.success) {
+
+                                // alert setelah update status in/out
                                 document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
+
                                 setTimeout(() => {
                                     document.getElementById("alertBoxUpdateStatus").innerHTML = "";
-                                }, 3000);
 
+                                    const openModal = document.querySelector('.modal.show');
+                                    if (!openModal) {
+                                        location.reload(); // Tidak ada modal terbuka → langsung reload
+                                    } else {
+                                        // Jika masih ada modal terbuka, tunggu sampai modal ditutup
+                                        openModal.addEventListener('hidden.bs.modal', function() {
+                                            location.reload(); // Baru reload setelah modal ditutup
+                                        }, {
+                                            once: true
+                                        }); // hanya dijalankan sekali
+                                    }
+                                }, 3000);
 
                                 // Update badge status (local update)
                                 let card = document.querySelector(`[data-id='${id}']`);

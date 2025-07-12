@@ -54,7 +54,7 @@ class KendaraanController extends Controller
             };
         })->values();
     }
-    // monitoring kendaraan di halaman user
+    // monitoring kendaraan di halaman user (halaman old / tidak dipakai)
     public function index()
     {
         // Ambil semua data kendaraan
@@ -84,6 +84,7 @@ class KendaraanController extends Controller
         return view('kendaraan.index', compact('kendaraan'));
     }
 
+    // json ambil data kendaraan
     public function getData()
     {
         $kendaraan = Kendaraan::where('isActive', 1)
