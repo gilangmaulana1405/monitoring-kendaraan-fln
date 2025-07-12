@@ -45,7 +45,7 @@
                     </div>
 
                     @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
-                    <button type="button"" class=" btn btn-sm btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">+ Tambah Kendaraan</button>
+                    <button type="button"" class=" btn btn-sm btn-info mt-1" style="color:white;" data-bs-toggle="modal" data-bs-target="#tambahKendaraanModal">+ Tambah Kendaraan</button>
                     @endif
 
                     <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -86,58 +86,60 @@
             {{-- alert untuk input in/out dari js --}}
             <div id="alertBoxUpdateStatus" class="mt-3"></div>
 
-            <div class="row mt-3">
+            <div class="row mt-3" id="kendaraan-container">
                 @foreach($kendaraan as $k)
-                <div class="col-md-4 mb-4 kendaraan-card" data-id="{{ $k->id }}">
-                    <div class="card">
-                        <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
-                        <div class="card-body position-relative">
-                            <h5 class="card-title">{{ $k->nama_mobil }}</h5>
-                            <p class="card-text">{{ $k->nopol }}</p>
-
-                            @auth
-                            @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
-                                Update Status
-                            </button>
-                            @endif
-                            @endauth
-
-                            {{-- status dalam card --}}
-                            @php
-                            $statusClass = match ($k->status) {
-                            'Stand By' => 'success',
-                            'Pergi' => 'warning',
-                            'Perbaikan' => 'danger',
-                            default => throw new \Exception('Status tidak dikenal: ' . $k->status),
-                            };
-                            @endphp
-
-                            <div class="position-absolute bottom-0 end-0 text-end m-2">
-                                <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
-                                    {{ $k->status }}
-                                </span>
-                                <br>
-                                {{-- time diffforhuman --}}
-                                <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
-                                    {{ $k->updated_at ? $k->updated_at->diffForHumans() : 'Belum pernah diperbarui' }}
-                                </small>
+                <div class="col-md-4 mb-4" data-id="{{ $k->id }}" data-status="{{ $k->status }}" data-updated="{{ $k->updated_at }}">
+                    <div class="kendaraan-card">
+                        <div class="card">
+                            <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
+                            <div class="card-body position-relative">
+                                <h5 class="card-title">{{ $k->nama_mobil }}</h5>
+                                <p class="card-text">{{ $k->nopol }}</p>
 
                                 @auth
-                                @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
-                                        Edit
-                                    </button>
-
-                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
-                                        Hapus
-                                    </button>
-
-                                </div>
+                                @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
+                                    Update Status
+                                </button>
                                 @endif
                                 @endauth
 
+                                {{-- status dalam card --}}
+                                @php
+                                $statusClass = match ($k->status) {
+                                'Stand By' => 'success',
+                                'Pergi' => 'warning',
+                                'Perbaikan' => 'danger',
+                                default => throw new \Exception('Status tidak dikenal: ' . $k->status),
+                                };
+                                @endphp
+
+                                <div class="position-absolute bottom-0 end-0 text-end m-2">
+                                    <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
+                                        {{ $k->status }}
+                                    </span>
+                                    <br>
+                                    {{-- time diffforhuman --}}
+                                    <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
+                                        {{ $k->updated_at ? $k->updated_at->diffForHumans() : 'Belum pernah diperbarui' }}
+                                    </small>
+
+                                    @auth
+                                    @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
+                                            Edit
+                                        </button>
+
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
+                                            Hapus
+                                        </button>
+
+                                    </div>
+                                    @endif
+                                    @endauth
+
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -334,7 +336,6 @@
     </div>
 
 
-
     {{-- offline --}}
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/vendor/dayjs/dayjs.min.js') }}"></script>
@@ -427,36 +428,153 @@
 
             // Pastikan kendaraanIds sudah didefinisikan
             if (Array.isArray(window.kendaraanIds)) {
+                // Realtime listener
                 window.kendaraanIds.forEach(id => {
                     window.Echo.channel(`kendaraan.${id}`)
-                        .listen('.KendaraanUpdated', (event) => {
-                            const card = document.querySelector(`[data-id='${event.id}']`);
-                            if (!card) return;
+                        .listen('.KendaraanUpdated', (data) => {
+                            const wrapper = document.querySelector(`.col-md-4[data-id="${id}"]`);
+                            if (!wrapper) return;
 
+                            wrapper.setAttribute("data-status", data.status);
+                            wrapper.setAttribute("data-updated", data.updated_at);
+
+                            const card = wrapper.querySelector(".kendaraan-card");
                             const badge = card.querySelector(".status-badge");
-                            badge.textContent = event.status;
-                            badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+                            const waktu = card.querySelector(".waktu-update");
 
-                            switch (event.status) {
-                                case "Stand By":
-                                    badge.classList.add("bg-success");
-                                    break;
-                                case "Pergi":
-                                    badge.classList.add("bg-warning");
-                                    break;
-                                case "Perbaikan":
-                                    badge.classList.add("bg-danger");
-                                    break;
+                            if (badge) {
+                                badge.textContent = data.status;
+                                badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+
+                                switch (data.status) {
+                                    case "Stand By":
+                                        badge.classList.add("bg-success");
+                                        break;
+                                    case "Pergi":
+                                        badge.classList.add("bg-warning");
+                                        break;
+                                    case "Perbaikan":
+                                        badge.classList.add("bg-danger");
+                                        break;
+                                }
                             }
 
-                            const waktu = card.querySelector(".waktu-update");
-                            waktu.textContent = dayjs(event.updated_at).fromNow();
-                            waktu.setAttribute("data-updated", event.updated_at);
+                            if (waktu) {
+                                waktu.textContent = dayjs(data.updated_at).fromNow();
+                                waktu.setAttribute("data-updated", data.updated_at);
+                            }
+
+                            sortKendaraanCards();
                         });
                 });
             } else {
                 console.warn('kendaraanIds belum didefinisikan atau bukan array.');
             }
+
+            function sortKendaraanCards() {
+                const container = document.getElementById('kendaraan-container');
+                if (!container) return;
+
+                const statusOrder = {
+                    'Stand By': 1
+                    , 'Pergi': 2
+                    , 'Perbaikan': 3
+                };
+
+                const cards = Array.from(container.querySelectorAll('.col-md-4'));
+
+                const sorted = cards.sort((a, b) => {
+                    const statusA = a.getAttribute('data-status');
+                    const statusB = b.getAttribute('data-status');
+                    const updatedA = new Date(a.getAttribute('data-updated'));
+                    const updatedB = new Date(b.getAttribute('data-updated'));
+
+                    if (statusOrder[statusA] !== statusOrder[statusB]) {
+                        return statusOrder[statusA] - statusOrder[statusB];
+                    }
+                    return updatedB - updatedA; // lebih baru di atas
+                });
+
+                sorted.forEach(el => container.appendChild(el));
+            }
+
+            window.Echo.channel('kendaraan.global')
+                .listen('.KendaraanCrud', (e) => {
+                    const container = document.getElementById("kendaraan-container");
+                    const userJabatan = document.getElementById('user-jabatan') ?.value || '';
+                    const canUpdate = ['Admin GA', 'Staff GA', 'Security'].includes(userJabatan);
+                    const canEditDelete = ['Admin GA', 'Staff GA'].includes(userJabatan);
+
+                    const generateCard = (data) => {
+                        const statusClass = {
+                            'Stand By': 'success'
+                            , 'Pergi': 'warning'
+                            , 'Perbaikan': 'danger'
+                        } [data.status] ?? 'secondary';
+
+                        const waktuUpdate = dayjs(data.updated_at).fromNow();
+
+                        return `
+        <div class="col-md-4 mb-4" data-id="${data.id}" data-status="${data.status}" data-updated="${data.updated_at}">
+            <div class="kendaraan-card">
+                <div class="card">
+                    <img src="${data.image_path}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
+                    <div class="card-body position-relative">
+                        <h5 class="card-title">${data.nama_mobil}</h5>
+                        <p class="card-text">${data.nopol}</p>
+
+                        ${canUpdate ? `
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal${data.id}">
+                            Update Status
+                        </button>` : ''}
+
+                        <div class="position-absolute bottom-0 end-0 text-end m-2">
+                            <span class="badge bg-${statusClass} mb-1 status-badge">${data.status}</span>
+                            <br>
+                            <small class="text-muted waktu-update mt-1 d-block" data-updated="${data.updated_at}">
+                                ${waktuUpdate}
+                            </small>
+
+                            ${canEditDelete ? `
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${data.id}">Edit</button>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${data.id}">Hapus</button>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+                    };
+
+                    // Handle Add
+                    if (e.action === 'add') {
+                        const existing = document.querySelector(`[data-id="${e.data.id}"]`);
+                        if (existing) return; // Jangan tambah duplikat
+                        container.insertAdjacentHTML('afterbegin', generateCard(e.data));
+                        sortKendaraanCards();
+                    }
+
+                    // Handle Edit
+                 if (e.action === 'edit') {
+                 const existing = document.querySelector(`[data-id="${e.data.id}"]`);
+                 if (existing) {
+                 console.log('Menghapus elemen lama:', existing); // 🐞 debug
+                 existing.remove(); // ini harus menghapus yang lama sepenuhnya
+                 }
+
+                 container.insertAdjacentHTML('afterbegin', generateCard(e.data));
+                 sortKendaraanCards();
+                 }
+
+
+                    // Handle Delete
+                    if (e.action === 'delete') {
+                        const existing = document.querySelector(`[data-id="${e.kendaraanId}"]`);
+                        if (existing) existing.remove();
+                    }
+                });
+
 
             // update_at berubah ubah dinamis
             setInterval(() => {
@@ -511,7 +629,7 @@
                     inputLain.style.display = "block";
                 } else {
                     inputLain.style.display = "none";
-                    inputLain.value = ""; // kosongkan kalau tidak dipakai
+                    inputLain.value = "";
                 }
             }
 
@@ -558,44 +676,54 @@
 
                                 // alert setelah update status in/out
                                 document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
-
                                 setTimeout(() => {
                                     document.getElementById("alertBoxUpdateStatus").innerHTML = "";
-
-                                    const openModal = document.querySelector('.modal.show');
-                                    if (!openModal) {
-                                        location.reload(); // Tidak ada modal terbuka → langsung reload
-                                    } else {
-                                        // Jika masih ada modal terbuka, tunggu sampai modal ditutup
-                                        openModal.addEventListener('hidden.bs.modal', function() {
-                                            location.reload(); // Baru reload setelah modal ditutup
-                                        }, {
-                                            once: true
-                                        }); // hanya dijalankan sekali
-                                    }
                                 }, 3000);
+
 
                                 // Update badge status (local update)
                                 let card = document.querySelector(`[data-id='${id}']`);
-                                const badge = card.querySelector(".status-badge");
-                                badge.textContent = data.status;
-                                badge.classList.remove("bg-success", "bg-warning", "bg-danger");
+                                if (card) {
+                                    const badge = card.querySelector(".status-badge");
+                                    if (badge) {
+                                        badge.textContent = data.status;
+                                        badge.classList.remove("bg-success", "bg-warning", "bg-danger");
 
-                                switch (data.status) {
-                                    case "Stand By":
-                                        badge.classList.add("bg-success");
-                                        break;
-                                    case "Pergi":
-                                        badge.classList.add("bg-warning");
-                                        break;
-                                    case "Perbaikan":
-                                        badge.classList.add("bg-danger");
-                                        break;
+                                        switch (data.status) {
+                                            case "Stand By":
+                                                badge.classList.add("bg-success");
+                                                break;
+                                            case "Pergi":
+                                                badge.classList.add("bg-warning");
+                                                break;
+                                            case "Perbaikan":
+                                                badge.classList.add("bg-danger");
+                                                break;
+                                        }
+                                    }
+
+                                    const waktu = card.querySelector(".waktu-update");
+                                    if (waktu) {
+                                        waktu.textContent = dayjs(data.updated_at).fromNow();
+                                        waktu.setAttribute("data-updated", data.updated_at);
+                                    }
+
+                                    // ✅ Tambahkan untuk sorting
+                                    card.setAttribute("data-status", data.status);
+                                    card.setAttribute("data-updated", data.updated_at);
+
+                                    // ✅ Panggil urut ulang
+                                    sortKendaraanCards();
                                 }
 
-                                let modal = bootstrap.Modal.getInstance(document.getElementById('modal' + id));
-                                modal.hide();
-
+                                // ✅ Tutup modal hanya jika berhasil ditemukan
+                                const modalEl = document.getElementById('modal' + id);
+                                if (modalEl) {
+                                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                                    if (modalInstance) {
+                                        modalInstance.hide();
+                                    }
+                                }
 
                             } else {
                                 document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-danger'>Terjadi kesalahan, silahkan coba lagi.</div>`;

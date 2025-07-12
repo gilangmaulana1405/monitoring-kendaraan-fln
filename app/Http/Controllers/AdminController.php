@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Kendaraan;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Events\KendaraanCrud;
 use Illuminate\Support\Carbon;
 use App\Models\HistoryKendaraan;
 use Illuminate\Support\Facades\Hash;
@@ -49,7 +50,6 @@ class AdminController extends Controller
 
         return response()->json($data);
     }
-
 
     public function listUsers()
     {
@@ -245,6 +245,16 @@ class AdminController extends Controller
             ]);
         }
 
+        event(new KendaraanCrud('add', $kendaraan->id, [
+            'id' => $kendaraan->id,
+            'nama_mobil' => $kendaraan->nama_mobil,
+            'nopol' => $kendaraan->nopol,
+            'status' => $kendaraan->status,
+            'updated_at' => $kendaraan->updated_at,
+            'image_path' => asset('storage/mobil/' . $kendaraan->gambar_mobil),
+        ]));
+        
+
         return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil ditambahkan!");
     }
 
@@ -323,12 +333,20 @@ class AdminController extends Controller
             }
         }
 
-        // Simpan perubahan
         $kendaraan->update([
             'nama_mobil' => $nama_mobil,
             'nopol' => $nopol,
             'gambar_mobil' => $gambarPath,
         ]);
+
+        event(new KendaraanCrud('edit', $kendaraan->id, [
+            'id' => $kendaraan->id,
+            'nama_mobil' => $kendaraan->nama_mobil,
+            'nopol' => $kendaraan->nopol,
+            'status' => $kendaraan->status,
+            'updated_at' => $kendaraan->updated_at,
+            'image_path' => asset('storage/mobil/' . $kendaraan->gambar_mobil) . '?' . now()->timestamp,
+        ]));
 
         return redirect('/kendaraan')->with('success', "Kendaraan berhasil diubah!");
     }
@@ -344,6 +362,8 @@ class AdminController extends Controller
 
         $kendaraan->isActive = 0;
         $kendaraan->save();
+
+        event(new KendaraanCrud('delete', $kendaraan->id));
 
         return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil dihapus!");
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kendaraan;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Events\KendaraanSort;
 use Illuminate\Support\Carbon;
 use App\Events\KendaraanUpdated;
 use App\Models\HistoryKendaraan;
@@ -45,15 +46,24 @@ class KendaraanController extends Controller
     // sort by status
     private function sortByStatus($kendaraan)
     {
-        return $kendaraan->sortBy(function ($item) {
-            return match ($item->status) {
+        return $kendaraan->sort(function ($a, $b) {
+            $statusOrder = [
                 'Stand By'  => 1,
                 'Pergi'     => 2,
                 'Perbaikan' => 3,
-                default     => 4,
-            };
-        })->values();
+            ];
+
+            $orderA = $statusOrder[$a->status] ?? 4;
+            $orderB = $statusOrder[$b->status] ?? 4;
+
+            if ($orderA === $orderB) {
+                return strtotime($b->updated_at) <=> strtotime($a->updated_at); // lebih baru di atas
+            }
+
+            return $orderA <=> $orderB;
+        })->values(); // reset index
     }
+
     // monitoring kendaraan di halaman user (halaman old / tidak dipakai)
     public function index()
     {
@@ -127,7 +137,7 @@ class KendaraanController extends Controller
         $kendaraan = Kendaraan::where('isActive', 1)->get()->map(function ($k) {
             $k->image_path = $this->getImagePath($k->nopol);
             return $k;
-        });        
+        });
 
         $kendaraan = $this->sortByStatus($kendaraan);
 
@@ -205,6 +215,7 @@ class KendaraanController extends Controller
 
         // Kirim update ke broadcast jika real-time (opsional)
         broadcast(new KendaraanUpdated($kendaraan));
+
 
         return response()->json([
             'success' => true,
