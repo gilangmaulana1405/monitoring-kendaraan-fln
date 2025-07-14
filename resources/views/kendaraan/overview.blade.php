@@ -559,13 +559,13 @@
                  if (e.action === 'edit') {
                  const existing = document.querySelector(`[data-id="${e.data.id}"]`);
                  if (existing) {
-                 console.log('Menghapus elemen lama:', existing); // 🐞 debug
-                 existing.remove(); // ini harus menghapus yang lama sepenuhnya
+                 console.log('Menghapus elemen lama:', existing); 
                  }
 
                  container.insertAdjacentHTML('afterbegin', generateCard(e.data));
                  sortKendaraanCards();
                  }
+
 
 
                     // Handle Delete
