@@ -125,8 +125,8 @@
                                     </small>
 
                                     @auth
-                                    @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']))
-                                    <div class="mt-2">
+                                    @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']) && !in_array($k->status, ['Pergi', 'Perbaikan']))
+                                    <div class="mt-2 kendaraan-action-buttons">
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
                                             Edit
                                         </button>
@@ -134,7 +134,6 @@
                                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
                                             Hapus
                                         </button>
-
                                     </div>
                                     @endif
                                     @endauth
@@ -512,7 +511,9 @@
                             , 'Perbaikan': 'danger'
                         } [data.status] ?? 'secondary';
 
-                        const waktuUpdate = dayjs(data.updated_at).fromNow();
+                        const waktuUpdate = dayjs(data.updated_at).isValid() ?
+                            dayjs(data.updated_at).fromNow() :
+                            "Belum pernah diperbarui";
 
                         return `
         <div class="col-md-4 mb-4" data-id="${data.id}" data-status="${data.status}" data-updated="${data.updated_at}">
@@ -535,7 +536,7 @@
                                 ${waktuUpdate}
                             </small>
 
-                            ${canEditDelete ? `
+                            ${(canEditDelete && !['Pergi', 'Perbaikan'].includes(data.status)) ? `
                             <div class="mt-2">
                                 <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${data.id}">Edit</button>
                                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${data.id}">Hapus</button>
@@ -556,17 +557,13 @@
                     }
 
                     // Handle Edit
-                 if (e.action === 'edit') {
-                 const existing = document.querySelector(`[data-id="${e.data.id}"]`);
-                 if (existing) {
-                 console.log('Menghapus elemen lama:', existing); 
-                 }
+                    if (e.action === 'edit') {
+                        const existing = document.querySelector(`[data-id="${e.data.id}"]`);
+                        if (existing) existing.remove();
 
-                 container.insertAdjacentHTML('afterbegin', generateCard(e.data));
-                 sortKendaraanCards();
-                 }
-
-
+                        container.insertAdjacentHTML('afterbegin', generateCard(e.data));
+                        sortKendaraanCards();
+                    }
 
                     // Handle Delete
                     if (e.action === 'delete') {
@@ -580,7 +577,7 @@
             setInterval(() => {
                 document.querySelectorAll(".waktu-update").forEach(el => {
                     const updatedAt = el.getAttribute("data-updated");
-                    if (updatedAt) {
+                    if (updatedAt && dayjs(updatedAt).isValid()) {
                         const diffInSeconds = dayjs().diff(dayjs(updatedAt), 'second');
                         if (diffInSeconds < 60) {
                             el.textContent = "Baru saja diubah";
@@ -682,9 +679,16 @@
 
 
                                 // Update badge status (local update)
-                                let card = document.querySelector(`[data-id='${id}']`);
-                                if (card) {
+                                let wrapper = document.querySelector(`.col-md-4[data-id='${id}']`);
+                                if (wrapper) {
+                                    const card = wrapper.querySelector(".kendaraan-card");
                                     const badge = card.querySelector(".status-badge");
+
+                                    const actionButtons = wrapper.querySelector(".kendaraan-action-buttons");
+                                    if (actionButtons && ['Pergi', 'Perbaikan'].includes(data.status)) {
+                                        actionButtons.remove();
+                                    }
+
                                     if (badge) {
                                         badge.textContent = data.status;
                                         badge.classList.remove("bg-success", "bg-warning", "bg-danger");
@@ -708,15 +712,34 @@
                                         waktu.setAttribute("data-updated", data.updated_at);
                                     }
 
-                                    // ✅ Tambahkan untuk sorting
+                                    // === Update Tombol Edit & Hapus ===
+                                    if (['Pergi', 'Perbaikan'].includes(data.status)) {
+                                        // Hapus tombol jika status bukan "Stand By"
+                                        if (actionButtons) actionButtons.remove();
+                                    } else {
+                                        // Tambah tombol jika belum ada dan user berhak edit
+                                        if (!actionButtons && canEditDelete) {
+                                            const tombolDiv = document.createElement('div');
+                                            tombolDiv.className = 'mt-2 kendaraan-action-buttons';
+                                            tombolDiv.innerHTML = `
+                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${id}">Edit</button>
+                                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${id}">Hapus</button>
+                                     `;
+
+                                            const posisi = card.querySelector('.position-absolute');
+                                            if (posisi) posisi.appendChild(tombolDiv);
+                                        }
+                                    }
+
+                                    //  Tambahkan untuk sorting
                                     card.setAttribute("data-status", data.status);
                                     card.setAttribute("data-updated", data.updated_at);
 
-                                    // ✅ Panggil urut ulang
+                                    //  Panggil urut ulang
                                     sortKendaraanCards();
                                 }
 
-                                // ✅ Tutup modal hanya jika berhasil ditemukan
+                                //  Tutup modal hanya jika berhasil ditemukan
                                 const modalEl = document.getElementById('modal' + id);
                                 if (modalEl) {
                                     const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -736,6 +759,11 @@
                 });
             });
         });
+
+    </script>
+
+    <script>
+        const canEditDelete = @json(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']));
 
     </script>
 

@@ -221,6 +221,7 @@ class KendaraanController extends Controller
             'success' => true,
             'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
             'status' => $kendaraan->status,
+            'updated_at' => $kendaraan->updated_at->toIso8601String(),
         ]);
     }
 }
