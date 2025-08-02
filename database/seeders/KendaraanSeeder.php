@@ -81,7 +81,15 @@ class KendaraanSeeder extends Seeder
             [
                 'nama_mobil' => 'Hiace Abu',
                 'nopol' => 'F 7106 FC',
-                'gambar_mobil' => 'SKT_F 8320 GC.jpeg',
+                'gambar_mobil' => 'Hiace Abu_F 7106 FC.jpeg',
+                'status' => 'Stand By',
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ],
+            [
+                'nama_mobil' => 'Hiace Putih',
+                'nopol' => 'B 7065 FDB',
+                'gambar_mobil' => 'Hiace Putih_B 7065 FDB.jpeg',
                 'status' => 'Stand By',
                 'created_at'   => now(),
                 'updated_at'   => now(),
