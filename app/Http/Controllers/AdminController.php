@@ -25,151 +25,48 @@ class AdminController extends Controller
         return view('admin.history');
     }
 
-   public function getDatahistoryKendaraan()
-{
-    $data = HistoryKendaraan::with('kendaraan')
-        ->orderBy('updated_at', 'desc')
-        ->get()
-        ->map(function ($item) {
-            $namaMobil = $item->kendaraan->nama_mobil ?? '-';
-            $nopol = $item->kendaraan->nopol ?? '-';
-            $status = $item->status ?? '-';
+    public function getDatahistoryKendaraan()
+    {
+        $data = HistoryKendaraan::with('kendaraan')
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $namaMobil = $item->kendaraan->nama_mobil ?? '-';
+                $nopol = $item->kendaraan->nopol ?? '-';
+                $status = $item->status ?? '-';
 
-            $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
-            $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
-            $item->status = $status;
+                $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
+                $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
+                $item->status = $status;
 
-            // Default 0 kalau null
-            $km_awal  = $item->km_awal ?? 0;
-            $km_akhir = $item->km_akhir ?? 0;
-            $selisih  = $km_akhir - $km_awal;
+                // Default 0 kalau null
+                $km_awal  = $item->km_awal ?? 0;
+                $km_akhir = $item->km_akhir ?? 0;
+                $selisih  = $km_akhir - $km_awal;
 
-            if (strtolower($status) === 'pergi') {
-                $item->total_km = "<div>
+                if (strtolower($status) === 'pergi') {
+                    $item->total_km = "<div>
                     <small><em>Km Awal</em></small><br>
                     {$km_awal}
                 </div>";
-            } elseif (strtolower($status) === 'stand by') {
-                $item->total_km = "<div>
+                } elseif (strtolower($status) === 'stand by') {
+                    $item->total_km = "<div>
                     <small><em>Km Awal - Km Akhir</em></small><br>
                     {$km_awal} - {$km_akhir}<br>
                     <strong>= {$selisih} km</strong>
                 </div>";
-            } else {
-                $item->total_km = "<div>
+                } else {
+                    $item->total_km = "<div>
                     <small><em>Km Awal - Km Akhir</em></small><br>
                     {$km_awal} - {$km_akhir}<br>
                     <strong>= {$selisih} km</strong>
                 </div>";
-            }
+                }
 
-            return $item;
-        });
-
-    return response()->json($data);
-}
-
-
-    public function listUsers()
-    {
-        $users = User::all();
-        $jabatanList = ['Admin GA', 'Staff GA', 'Security'];
-        return view('admin.users', compact('users', 'jabatanList'));
-    }
-
-    public function getDataUsers()
-    {
-        $data = User::where('isActive', 1)
-            ->orderBy('updated_at', 'desc')
-            ->get();
+                return $item;
+            });
 
         return response()->json($data);
-    }
-
-    public function tambahUsers(Request $request)
-    {
-        $request->validate([
-            'nama_lengkap' => 'required',
-            'username' => 'required|unique:users,username|min:3',
-            'jabatan' => 'required',
-            'password' => 'required|min:6'
-        ], [
-            'username.unique' => 'Username sudah ada.',
-            'username.required' => 'Username wajib diisi.',
-            'username.min' => 'Username minimal 3 karakter.',
-            'jabatan.required' => 'Jabatan wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 6 karakter.'
-        ]);
-
-        User::create([
-            'nama_lengkap' => ucwords(strtolower($request->nama_lengkap)),
-            'username' => $request->username,
-            'jabatan' => $request->jabatan,
-            'password' => Hash::make($request->password)
-        ]);
-
-        return response()->json(['message' => 'User berhasil ditambahkan!']);
-    }
-
-    public function editUsers(Request $request, $id)
-    {
-        $request->validate([
-            'nama_lengkap' => 'required',
-            'username' => 'required|unique:users,username|min:3',
-            'jabatan' => 'required'
-        ], [
-            'username.unique' => 'Username sudah ada.',
-            'username.required' => 'Username wajib diisi.',
-            'username.min' => 'Username minimal 3 karakter.',
-            'jabatan.required' => 'Jabatan wajib diisi.',
-        ]);
-
-        $user = User::findOrFail($id);
-        $user->nama_lengkap = ucwords(strtolower($request->nama_lengkap));
-        $user->username = $request->username;
-        $user->jabatan = $request->jabatan;
-        $user->save();
-
-        return response()->json(['message' => 'User berhasil diperbarui!']);
-    }
-
-    public function hapusUsers($id)
-    {
-        $user = User::findOrFail($id);
-        $user->isActive = 0;
-        $user->save();
-
-        return response()->json(['message' => 'User berhasil dihapus!']);
-    }
-
-    public function gantiPassword(Request $request)
-    {
-        // Validasi input
-        $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|min:3|confirmed', // Validasi untuk new_password dan konfirmasinya
-        ], [
-            'current_password.required' => 'Password saat ini wajib diisi.',
-            'new_password.required' => 'Password baru wajib diisi.',
-            'new_password.min' => 'Password baru minimal 3 karakter.',
-            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
-        ]);
-
-        // Menemukan user berdasarkan ID
-        $user = User::find($request->user_id);
-
-        // Memeriksa apakah password saat ini cocok
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini salah.'])->withInput();
-        }
-
-        // Mengubah password pengguna dengan password baru
-        $user->password = Hash::make($request->new_password);
-        $user->save();
-
-        // Mengirimkan respons sukses
-        return response()->json(['message' => 'Password berhasil diperbarui!']);
     }
 
     public function listKendaraan()
@@ -385,5 +282,130 @@ class AdminController extends Controller
         event(new KendaraanCrud('delete', $kendaraan->id));
 
         return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil dihapus!");
+    }
+
+    public function sembunyikanKendaraan(Request $request, $id)
+    {
+        $kendaraan = Kendaraan::findOrFail($id);
+
+        // Toggle nilai
+        $kendaraan->isVisible = !$kendaraan->isVisible;
+        $kendaraan->save();
+
+        // Tentukan pesan berdasarkan hasil toggle
+        $statusTextToggle = $kendaraan->isVisible
+            ? "ditampilkan"
+            : "disembunyikan";
+
+        return redirect('/kendaraan')->with(
+            'success',
+            "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil {$statusTextToggle}!"
+        );
+    }
+
+
+
+
+    // =============================== USER =========================================================
+    public function listUsers()
+    {
+        $users = User::all();
+        $jabatanList = ['Admin GA', 'Staff GA', 'Security'];
+        return view('admin.users', compact('users', 'jabatanList'));
+    }
+
+    public function getDataUsers()
+    {
+        $data = User::where('isActive', 1)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->json($data);
+    }
+
+    public function tambahUsers(Request $request)
+    {
+        $request->validate([
+            'nama_lengkap' => 'required',
+            'username' => 'required|unique:users,username|min:3',
+            'jabatan' => 'required',
+            'password' => 'required|min:6'
+        ], [
+            'username.unique' => 'Username sudah ada.',
+            'username.required' => 'Username wajib diisi.',
+            'username.min' => 'Username minimal 3 karakter.',
+            'jabatan.required' => 'Jabatan wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.'
+        ]);
+
+        User::create([
+            'nama_lengkap' => ucwords(strtolower($request->nama_lengkap)),
+            'username' => $request->username,
+            'jabatan' => $request->jabatan,
+            'password' => Hash::make($request->password)
+        ]);
+
+        return response()->json(['message' => 'User berhasil ditambahkan!']);
+    }
+
+    public function editUsers(Request $request, $id)
+    {
+        $request->validate([
+            'nama_lengkap' => 'required',
+            'username' => 'required|unique:users,username|min:3',
+            'jabatan' => 'required'
+        ], [
+            'username.unique' => 'Username sudah ada.',
+            'username.required' => 'Username wajib diisi.',
+            'username.min' => 'Username minimal 3 karakter.',
+            'jabatan.required' => 'Jabatan wajib diisi.',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->nama_lengkap = ucwords(strtolower($request->nama_lengkap));
+        $user->username = $request->username;
+        $user->jabatan = $request->jabatan;
+        $user->save();
+
+        return response()->json(['message' => 'User berhasil diperbarui!']);
+    }
+
+    public function hapusUsers($id)
+    {
+        $user = User::findOrFail($id);
+        $user->isActive = 0;
+        $user->save();
+
+        return response()->json(['message' => 'User berhasil dihapus!']);
+    }
+
+    public function gantiPassword(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:3|confirmed', // Validasi untuk new_password dan konfirmasinya
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'new_password.required' => 'Password baru wajib diisi.',
+            'new_password.min' => 'Password baru minimal 3 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        // Menemukan user berdasarkan ID
+        $user = User::find($request->user_id);
+
+        // Memeriksa apakah password saat ini cocok
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini salah.'])->withInput();
+        }
+
+        // Mengubah password pengguna dengan password baru
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Mengirimkan respons sukses
+        return response()->json(['message' => 'Password berhasil diperbarui!']);
     }
 }

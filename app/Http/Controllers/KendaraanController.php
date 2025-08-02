@@ -134,7 +134,14 @@ class KendaraanController extends Controller
     // List kendaraan untuk input keluar masuk kendaraan
     public function kendaraan()
     {
-        $kendaraan = Kendaraan::where('isActive', 1)->get()->map(function ($k) {
+        $query = Kendaraan::where('isActive', 1);
+
+        // Jika bukan Admin GA / Staff GA, filter hanya kendaraan yang visible
+        if (!auth()->check() || !in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA'])) {
+            $query->where('isVisible', 1);
+        }
+
+        $kendaraan = $query->get()->map(function ($k) {
             $k->image_path = $this->getImagePath($k->nopol);
             return $k;
         });
@@ -147,95 +154,97 @@ class KendaraanController extends Controller
         return view('kendaraan.overview', compact('kendaraan', 'kendaraanIds'));
     }
 
+
     public function update(Request $request)
-{
-    $rules = [
-        'status' => 'required|string',
-    ];
+    {
+        $rules = [
+            'status' => 'required|string',
+        ];
 
-    if ($request->status === 'Pergi') {
-        $rules['nama_pemakai'] = 'nullable|string';
-        $rules['departemen']  = 'nullable|string';
-        $rules['driver']      = 'required|string';
-        $rules['tujuan']      = 'nullable|string';
-        $rules['keterangan']  = 'nullable|string';
-        $rules['km_awal']     = 'required|numeric|min:0';
-
-        if ($request->driver === 'Lain-lain') {
-            $rules['driver_lain'] = 'required|string';
+        if ($request->status === 'Pergi') {
+            $rules['nama_pemakai'] = 'nullable|string';
+            $rules['departemen']  = 'nullable|string';
+            $rules['driver']      = 'required|string';
+            $rules['tujuan']      = 'nullable|string';
+            $rules['keterangan']  = 'nullable|string';
+            $rules['km_awal']     = 'required|numeric|min:0';
+            
+            if ($request->driver === 'Lain-lain') {
+                $rules['driver_lain'] = 'required|string';
+            }
+        } elseif ($request->status === 'Stand By') {
+            $rules['km_akhir'] = 'required|numeric|min:0';
+        } else {
+            $rules['catatan_perbaikan']  = 'nullable|string';
         }
-    } elseif ($request->status === 'Stand By') {
-        $rules['km_akhir'] = 'required|numeric|min:0';
-    } else {
-        // Perbaikan atau status lain → tidak ada validasi tambahan
+
+        $request->validate($rules);
+
+        $kendaraan = Kendaraan::findOrFail($request->id);
+
+        $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
+            ->where('status', 'Pergi')
+            ->latest()
+            ->first();
+
+        if ($request->status === 'Pergi') {
+            $namaPemakai = $request->nama_pemakai ?? $lastPergi?->nama_pemakai;
+            $departemen  = $request->departemen ?? $lastPergi?->departemen;
+            $driver      = $request->driver === 'Lain-lain'
+                ? ($request->driver_lain ?? $lastPergi?->driver)
+                : ($request->driver ?? $lastPergi?->driver);
+            $tujuan      = $request->tujuan ?? $lastPergi?->tujuan;
+            $keterangan  = $request->keterangan ?? $lastPergi?->keterangan;
+            $km_awal     = $request->km_awal ?? $lastPergi?->km_awal;
+            $km_akhir    = null;
+        } elseif ($request->status === 'Stand By') {
+            $namaPemakai = $lastPergi?->nama_pemakai;
+            $departemen  = $lastPergi?->departemen;
+            $driver      = $lastPergi?->driver;
+            $tujuan      = $lastPergi?->tujuan;
+            $keterangan  = $lastPergi?->keterangan;
+            $km_awal     = $lastPergi?->km_awal;
+            $km_akhir    = $request->km_akhir;
+        } else {
+            // Perbaikan atau status lain
+            $namaPemakai = $lastPergi?->nama_pemakai;
+            $departemen  = $lastPergi?->departemen;
+            $driver      = $lastPergi?->driver;
+            $tujuan      = $lastPergi?->tujuan;
+            $keterangan  = $lastPergi?->keterangan;
+            $km_awal     = $lastPergi?->km_awal;
+            $km_akhir    = $lastPergi?->km_akhir;
+            $catatan_perbaikan = $request->catatan_perbaikan;
+        }
+
+        $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
+        $driver      = $driver ? Str::title($driver) : null;
+
+        $kendaraan->status = $request->status;
+        $kendaraan->catatan_perbaikan = $catatan_perbaikan;
+        $kendaraan->updated_at = now();
+        $kendaraan->save();
+
+        HistoryKendaraan::create([
+            'kendaraan_id' => $kendaraan->id,
+            'status'       => $request->status,
+            'nama_pemakai' => $namaPemakai,
+            'departemen'   => $departemen,
+            'driver'       => $driver,
+            'tujuan'       => $tujuan,
+            'keterangan'   => $keterangan,
+            'km_awal'      => $km_awal ?? null,
+            'km_akhir'     => $km_akhir ?? null,
+            'pic_update'   => auth()->user()->username,
+        ]);
+
+        broadcast(new KendaraanUpdated($kendaraan));
+
+        return response()->json([
+            'success'    => true,
+            'message'    => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
+            'status'     => $kendaraan->status,
+            'updated_at' => $kendaraan->updated_at->toIso8601String(),
+        ]);
     }
-
-    $request->validate($rules);
-
-    $kendaraan = Kendaraan::findOrFail($request->id);
-
-    $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
-        ->where('status', 'Pergi')
-        ->latest()
-        ->first();
-
-    if ($request->status === 'Pergi') {
-        $namaPemakai = $request->nama_pemakai ?? $lastPergi?->nama_pemakai;
-        $departemen  = $request->departemen ?? $lastPergi?->departemen;
-        $driver      = $request->driver === 'Lain-lain'
-            ? ($request->driver_lain ?? $lastPergi?->driver)
-            : ($request->driver ?? $lastPergi?->driver);
-        $tujuan      = $request->tujuan ?? $lastPergi?->tujuan;
-        $keterangan  = $request->keterangan ?? $lastPergi?->keterangan;
-        $km_awal     = $request->km_awal ?? $lastPergi?->km_awal;
-        $km_akhir    = null;
-    } elseif ($request->status === 'Stand By') {
-        $namaPemakai = $lastPergi?->nama_pemakai;
-        $departemen  = $lastPergi?->departemen;
-        $driver      = $lastPergi?->driver;
-        $tujuan      = $lastPergi?->tujuan;
-        $keterangan  = $lastPergi?->keterangan;
-        $km_awal     = $lastPergi?->km_awal;
-        $km_akhir    = $request->km_akhir;
-    } else {
-        // Perbaikan atau status lain
-        $namaPemakai = $lastPergi?->nama_pemakai;
-        $departemen  = $lastPergi?->departemen;
-        $driver      = $lastPergi?->driver;
-        $tujuan      = $lastPergi?->tujuan;
-        $keterangan  = $request->keterangan ?? $lastPergi?->keterangan;
-        $km_awal     = $lastPergi?->km_awal;
-        $km_akhir    = $lastPergi?->km_akhir;
-    }
-
-    $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
-    $driver      = $driver ? Str::title($driver) : null;
-
-    $kendaraan->status = $request->status;
-    $kendaraan->updated_at = now();
-    $kendaraan->save();
-
-    HistoryKendaraan::create([
-        'kendaraan_id' => $kendaraan->id,
-        'status'       => $request->status,
-        'nama_pemakai' => $namaPemakai,
-        'departemen'   => $departemen,
-        'driver'       => $driver,
-        'tujuan'       => $tujuan,
-        'keterangan'   => $keterangan,
-        'km_awal'      => $km_awal ?? null,
-        'km_akhir'     => $km_akhir ?? null,
-        'pic_update'   => auth()->user()->username,
-    ]);
-
-    broadcast(new KendaraanUpdated($kendaraan));
-
-    return response()->json([
-        'success'    => true,
-        'message'    => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
-        'status'     => $kendaraan->status,
-        'updated_at' => $kendaraan->updated_at->toIso8601String(),
-    ]);
-}
-
 }

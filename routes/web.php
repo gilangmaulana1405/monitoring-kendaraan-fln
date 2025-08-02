@@ -44,6 +44,7 @@ Route::middleware(['auth', 'role:Admin GA,Staff GA'])->group(function () {
     Route::post('/kendaraan/tambah', [AdminController::class, 'tambahKendaraan'])->name('tambah.kendaraan');
     Route::put('/kendaraan/{id}/edit', [AdminController::class, 'editKendaraan'])->name('edit.kendaraan');
     Route::delete('/kendaraan/{id}/hapus', [AdminController::class, 'hapusKendaraan'])->name('hapus.kendaraan');
+    Route::put('/kendaraan/{id}/sembunyikan', [AdminController::class, 'sembunyikanKendaraan'])->name('sembunyikan.kendaraan');
 
     // === Riwayat Perubahan Status Kendaraan ===
     Route::get('/kendaraan/history', [AdminController::class, 'historyKendaraan'])->name('history.kendaraan');

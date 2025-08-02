@@ -90,57 +90,69 @@
                 @foreach($kendaraan as $k)
                 <div class="col-md-4 mb-4" data-id="{{ $k->id }}" data-status="{{ $k->status }}" data-updated="{{ $k->updated_at }}">
                     <div class="kendaraan-card">
-                        <div class="card">
-                            <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
-                            <div class="card-body position-relative">
-                                <h5 class="card-title">{{ $k->nama_mobil }}</h5>
-                                <p class="card-text">{{ $k->nopol }}</p>
+                     <div class="card">
+                         <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
+                         <div class="card-body position-relative">
+                             <h5 class="card-title">{{ $k->nama_mobil }}</h5>
+                             <p class="card-text">{{ $k->nopol }}</p>
 
-                                @auth
-                                @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
-                                    Update Status
-                                </button>
-                                @endif
-                                @endauth
+                             @auth
+                             @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
+                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
+                                 Update Status
+                             </button>
+                             @endif
+                             @endauth
 
-                                {{-- status dalam card --}}
-                                @php
-                                $statusClass = match ($k->status) {
-                                'Stand By' => 'success',
-                                'Pergi' => 'warning',
-                                'Perbaikan' => 'danger',
-                                default => throw new \Exception('Status tidak dikenal: ' . $k->status),
-                                };
-                                @endphp
+                             {{-- status dalam card --}}
+                             @php
+                             $statusClass = match ($k->status) {
+                             'Stand By' => 'success',
+                             'Pergi' => 'warning',
+                             'Perbaikan' => 'danger',
+                             default => throw new \Exception('Status tidak dikenal: ' . $k->status),
+                             };
+                             @endphp
 
-                                <div class="position-absolute bottom-0 end-0 text-end m-2">
-                                    <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
-                                        {{ $k->status }}
-                                    </span>
-                                    <br>
-                                    {{-- time diffforhuman --}}
-                                    <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
-                                        {{ $k->updated_at ? $k->updated_at->diffForHumans() : 'Belum pernah diperbarui' }}
-                                    </small>
+                             <div class="position-absolute bottom-0 end-0 text-end m-2">
+                                 <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
+                                     {{ $k->status }}
+                                 </span>
+                                 <br>
+                                 <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
+                                     {{ $k->updated_at ? $k->updated_at->diffForHumans() : '' }}
+                                 </small>
 
-                                    @auth
-                                    @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']) && !in_array($k->status, ['Pergi', 'Perbaikan']))
-                                    <div class="mt-2 kendaraan-action-buttons">
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
-                                            Edit
-                                        </button>
+                                 @auth
+                                 @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']) && !in_array($k->status, ['Pergi', 'Perbaikan']))
 
-                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
-                                            Hapus
-                                        </button>
-                                    </div>
-                                    @endif
-                                    @endauth
+                                 {{-- Tombol Edit & Hapus --}}
+                                 <div class="mt-2 kendaraan-action-buttons position-relative" style="padding-bottom: 2.5rem;">
+                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
+                                         Edit
+                                     </button>
 
-                                </div>
-                            </div>
-                        </div>
+                                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
+                                         Hapus
+                                     </button>
+
+                                     {{-- Toggle Visibilitas --}}
+                                     <form action="{{ route('sembunyikan.kendaraan', $k->id) }}" method="POST" class="position-absolute" style="right: 0.5rem; bottom: 0.5rem;">
+                                         @csrf
+                                         @method('PUT')
+                                         <div class="form-check form-switch">
+                                             <input class="form-check-input" type="checkbox" role="switch" style="width: 3rem; height: 1.5rem;" onchange="this.form.submit()" {{ $k->isVisible == 0 ? 'checked' : '' }}>
+                                         </div>
+                                     </form>
+                                 </div>
+
+                                 @endif
+                                 @endauth
+                             </div>
+                         </div>
+                     </div>
+
+
                     </div>
                 </div>
 
@@ -172,9 +184,16 @@
                                         </option>
                                     </select>
 
+                                    {{-- jika status stand by, muncul inputan km akhir --}}
                                     <div class="standby-fields mt-3" id="standbyFields{{ $k->id }}" style="display: none;">
                                         <label class="form-label">KM Akhir *</label>
                                         <input type="number" class="form-control" name="km_akhir">
+                                    </div>
+
+                                    {{-- jika status perbaikan, muncul inputan  --}}
+                                    <div class="perbaikan-fields mt-3" id="perbaikanFields{{ $k->id }}" style="display: none;">
+                                        <label class="form-label">Catatan Perbaikan *</label>
+                                        <textarea name="catatan_perbaikan" class="form-control"></textarea>
                                     </div>
 
                                     <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
@@ -396,7 +415,7 @@
             , relativeTime: {
                 future: 'dalam %s'
                 , past: '%s yang lalu'
-                , s: 'baru saja diubah'
+                , s: ''
                 , m: '1 menit'
                 , mm: '%d menit'
                 , h: '1 jam'
@@ -522,7 +541,7 @@
 
                         const waktuUpdate = dayjs(data.updated_at).isValid() ?
                             dayjs(data.updated_at).fromNow() :
-                            "Belum pernah diperbarui";
+                            "";
 
                         return `
         <div class="col-md-4 mb-4" data-id="${data.id}" data-status="${data.status}" data-updated="${data.updated_at}">
@@ -589,12 +608,12 @@
                     if (updatedAt && dayjs(updatedAt).isValid()) {
                         const diffInSeconds = dayjs().diff(dayjs(updatedAt), 'second');
                         if (diffInSeconds < 60) {
-                            el.textContent = "Baru saja diubah";
+                            el.textContent = "";
                         } else {
                             el.textContent = dayjs(updatedAt).fromNow();
                         }
                     } else {
-                        el.textContent = "Belum pernah diperbarui";
+                        el.textContent = "";
                     }
                 });
             }, 1000);
@@ -608,18 +627,22 @@
             });
 
             function toggleAdditionalFields(select) {
-                let div = document.getElementById("additionalFields" + select.dataset.id);
+                let pergiDiv = document.getElementById("additionalFields" + select.dataset.id);
                 let standbyDiv = document.getElementById("standbyFields" + select.dataset.id);
+                let perbaikanDiv = document.getElementById("perbaikanFields" + select.dataset.id);
 
                 if (select.value === "Pergi") {
-                    div.style.display = "block";
+                    pergiDiv.style.display = "block";
                     standbyDiv.style.display = "none";
+                    perbaikanDiv.style.display = "none";
                 } else if (select.value === "Stand By") {
                     standbyDiv.style.display = "block";
-                    div.style.display = "none";
-                } else {
-                    div.style.display = "none";
+                    pergiDiv.style.display = "none";
+                    perbaikanDiv.style.display = "none";
+                } else if(select.value === "Perbaikan"){
+                    perbaikanDiv.style.display = "block";
                     standbyDiv.style.display = "none";
+                    pergiDiv.style.display = "none";
                 }
             }
 
@@ -672,7 +695,7 @@
                             return;
                         }
 
-                        if (!nama || !departemen || !driver || !tujuan) {
+                        if (!nama || !departemen || !driver || !tujuan || !keterangan) {
                             alert("Data masih ada yang kosong dan harus diisi!");
                             return;
                         }
@@ -683,6 +706,16 @@
                         if (!kmAkhir) {
                             alert("KM Akhir wajib diisi saat kendaraan kembali (Stand By)!");
                             return;
+                        }
+                    }
+
+                    if (status === "Perbaikan") {
+                        const catatan_perbaikan = form.querySelector("textarea[name='catatan_perbaikan']")
+                        ?.value.trim() || "";
+
+                        if (!catatan_perbaikan) {
+                        alert("Catatan perbaikan harus diisi ketika kendaraan sedang dalam masalah!");
+                        return;
                         }
                     }
 
