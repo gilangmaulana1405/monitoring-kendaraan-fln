@@ -172,7 +172,13 @@
                                         </option>
                                     </select>
 
+                                    <div class="standby-fields mt-3" id="standbyFields{{ $k->id }}" style="display: none;">
+                                        <label class="form-label">KM Akhir *</label>
+                                        <input type="number" class="form-control" name="km_akhir">
+                                    </div>
+
                                     <div class="additional-fields mt-3" id="additionalFields{{ $k->id }}" style="display: none;">
+
                                         <label class="form-label">Nama Pemakai *</label>
                                         <input type="text" class="form-control" name="nama_pemakai">
 
@@ -206,8 +212,11 @@
                                         <label class="form-label">Tujuan *</label>
                                         <input type="text" class="form-control" name="tujuan">
 
-                                        <label class="form-label">Keterangan (opsional)</label>
+                                        <label class="form-label">Keterangan *</label>
                                         <textarea name="keterangan" class="form-control"></textarea>
+
+                                        <label class="form-label">KM Awal *</label>
+                                        <input type="number" class="form-control" name="km_awal">
                                     </div>
                                     <button type="submit" class="btn btn-primary mt-3">Update</button>
                                 </form>
@@ -600,12 +609,17 @@
 
             function toggleAdditionalFields(select) {
                 let div = document.getElementById("additionalFields" + select.dataset.id);
-                const inputs = div.querySelectorAll("input, textarea, select");
+                let standbyDiv = document.getElementById("standbyFields" + select.dataset.id);
 
                 if (select.value === "Pergi") {
                     div.style.display = "block";
+                    standbyDiv.style.display = "none";
+                } else if (select.value === "Stand By") {
+                    standbyDiv.style.display = "block";
+                    div.style.display = "none";
                 } else {
                     div.style.display = "none";
+                    standbyDiv.style.display = "none";
                 }
             }
 
@@ -634,21 +648,29 @@
             document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
-
-                    let status = form.querySelector("select[name='status']").value;
+                    
+                    //const id = form.dataset.id;
+                    const status = form.querySelector("select[name='status']").value;
 
                     if (status === "Pergi") {
-                        let mobil = form.querySelector("input[name='nama_mobil']").value.trim();
-                        let nopol = form.querySelector("input[name='nopol']").value.trim();
-                        let nama = form.querySelector("input[name='nama_pemakai']").value.trim();
-                        let departemen = form.querySelector("select[name='departemen']").value.trim();
+                        const mobil = form.querySelector("input[name='nama_mobil']").value.trim();
+                        const nopol = form.querySelector("input[name='nopol']").value.trim();
+                        const nama = form.querySelector("input[name='nama_pemakai']") ?.value.trim() || "";
+                        const departemen = form.querySelector("select[name='departemen']") ?.value.trim() || "";
+                        const tujuan = form.querySelector("input[name='tujuan']") ?.value.trim() || "";
+                        const keterangan = form.querySelector("textarea[name='keterangan']") ?.value.trim() || "";
 
-                        let driverSelect = form.querySelector("select[name='driver']").value.trim();
-                        let driver = driverSelect === "Lain-lain" ?
-                            form.querySelector("input[name='driver_lain']").value.trim() :
+                        const driverSelect = form.querySelector("select[name='driver']") ?.value.trim() || "";
+                        const driver = driverSelect === "Lain-lain" ?
+                            (form.querySelector("input[name='driver_lain']") ?.value.trim() || "") :
                             driverSelect;
 
-                        let tujuan = form.querySelector("input[name='tujuan']").value.trim();
+                        const kmAwal = form.querySelector("input[name='km_awal']") ?.value.trim() || "";
+
+                        if (!kmAwal) {
+                            alert("KM Awal wajib diisi saat kendaraan Pergi!");
+                            return;
+                        }
 
                         if (!nama || !departemen || !driver || !tujuan) {
                             alert("Data masih ada yang kosong dan harus diisi!");
@@ -656,8 +678,18 @@
                         }
                     }
 
+                    if (status === "Stand By") {
+                        const kmAkhir = form.querySelector("input[name='km_akhir']") ?.value.trim() || "";
+                        if (!kmAkhir) {
+                            alert("KM Akhir wajib diisi saat kendaraan kembali (Stand By)!");
+                            return;
+                        }
+                    }
+
+
                     // Proses fetch
                     let formData = new FormData(form);
+                    formData.append('_method', 'PUT');
                     let id = form.dataset.id;
 
                     fetch("/kendaraan/update", {
@@ -665,6 +697,7 @@
                             , body: formData
                             , headers: {
                                 "X-CSRF-TOKEN": document.querySelector("meta[name='csrf-token']").getAttribute("content")
+                                , "Accept": "application/json"
                             }
                         })
                         .then(response => response.json())
@@ -762,10 +795,11 @@
 
     </script>
 
-    <script>
-        const canEditDelete = @json(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']));
+<script>
+    window.canEditDelete = @json(in_array(optional(auth()->user())->jabatan, ['Admin GA', 'Staff GA']));
 
-    </script>
+</script>
+
 
 </body>
 

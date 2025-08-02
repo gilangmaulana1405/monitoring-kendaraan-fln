@@ -146,82 +146,96 @@ class KendaraanController extends Controller
 
         return view('kendaraan.overview', compact('kendaraan', 'kendaraanIds'));
     }
+
     public function update(Request $request)
-    {
-        $rules = [
-            'status' => 'required|string',
-        ];
+{
+    $rules = [
+        'status' => 'required|string',
+    ];
 
-        if ($request->status === 'Pergi') {
-            $rules['nama_pemakai'] = 'nullable|string';
-            $rules['departemen'] = 'nullable|string';
-            $rules['driver'] = 'required|string';
+    if ($request->status === 'Pergi') {
+        $rules['nama_pemakai'] = 'nullable|string';
+        $rules['departemen']  = 'nullable|string';
+        $rules['driver']      = 'required|string';
+        $rules['tujuan']      = 'nullable|string';
+        $rules['keterangan']  = 'nullable|string';
+        $rules['km_awal']     = 'required|numeric|min:0';
 
-            if ($request->driver === 'Lain-lain') {
-                $rules['driver_lain'] = 'required|string';
-            }
-
-            $rules['tujuan'] = 'nullable|string';
-            $rules['keterangan'] = 'nullable|string';
+        if ($request->driver === 'Lain-lain') {
+            $rules['driver_lain'] = 'required|string';
         }
-
-        $request->validate($rules);
-
-        // Ambil data kendaraan
-        $kendaraan = Kendaraan::findOrFail($request->id);
-
-        $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
-            ->where('status', 'Pergi')
-            ->latest()
-            ->first();
-
-        // Siapkan data history baru berdasarkan status
-        if ($request->status === 'Pergi') {
-            $namaPemakai = $request->nama_pemakai ?? $lastPergi?->nama_pemakai;
-            $departemen = $request->departemen ?? $lastPergi?->departemen;
-            $driver = $request->driver === 'Lain-lain'
-                ? ($request->driver_lain ?? $lastPergi?->driver)
-                : ($request->driver ?? $lastPergi?->driver);
-            $tujuan = $request->tujuan ?? $lastPergi?->tujuan;
-            $keterangan = $request->keterangan ?? $lastPergi?->keterangan;
-        } else {
-            $namaPemakai = $lastPergi?->nama_pemakai;
-            $departemen = $lastPergi?->departemen;
-            $driver = $lastPergi?->driver;
-            $tujuan = $lastPergi?->tujuan;
-            $keterangan = $lastPergi?->keterangan;
-        }
-
-        // Format penulisan nama
-        $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
-        $driver = $driver ? Str::title($driver) : null;
-
-        // Update status kendaraan saja
-        $kendaraan->status = $request->status;
-        $kendaraan->updated_at = now();
-        $kendaraan->save();
-
-        // Simpan ke history (tanpa nama_mobil, nopol, status)
-        HistoryKendaraan::create([
-            'kendaraan_id' => $kendaraan->id,
-            'status' => $request->status,
-            'nama_pemakai' => $namaPemakai,
-            'departemen' => $departemen,
-            'driver' => $driver,
-            'tujuan' => $tujuan,
-            'keterangan' => $keterangan,
-            'pic_update' => auth()->user()->username,
-        ]);
-
-        // Kirim update ke broadcast jika real-time (opsional)
-        broadcast(new KendaraanUpdated($kendaraan));
-
-
-        return response()->json([
-            'success' => true,
-            'message' => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
-            'status' => $kendaraan->status,
-            'updated_at' => $kendaraan->updated_at->toIso8601String(),
-        ]);
+    } elseif ($request->status === 'Stand By') {
+        $rules['km_akhir'] = 'required|numeric|min:0';
+    } else {
+        // Perbaikan atau status lain → tidak ada validasi tambahan
     }
+
+    $request->validate($rules);
+
+    $kendaraan = Kendaraan::findOrFail($request->id);
+
+    $lastPergi = HistoryKendaraan::where('kendaraan_id', $kendaraan->id)
+        ->where('status', 'Pergi')
+        ->latest()
+        ->first();
+
+    if ($request->status === 'Pergi') {
+        $namaPemakai = $request->nama_pemakai ?? $lastPergi?->nama_pemakai;
+        $departemen  = $request->departemen ?? $lastPergi?->departemen;
+        $driver      = $request->driver === 'Lain-lain'
+            ? ($request->driver_lain ?? $lastPergi?->driver)
+            : ($request->driver ?? $lastPergi?->driver);
+        $tujuan      = $request->tujuan ?? $lastPergi?->tujuan;
+        $keterangan  = $request->keterangan ?? $lastPergi?->keterangan;
+        $km_awal     = $request->km_awal ?? $lastPergi?->km_awal;
+        $km_akhir    = null;
+    } elseif ($request->status === 'Stand By') {
+        $namaPemakai = $lastPergi?->nama_pemakai;
+        $departemen  = $lastPergi?->departemen;
+        $driver      = $lastPergi?->driver;
+        $tujuan      = $lastPergi?->tujuan;
+        $keterangan  = $lastPergi?->keterangan;
+        $km_awal     = $lastPergi?->km_awal;
+        $km_akhir    = $request->km_akhir;
+    } else {
+        // Perbaikan atau status lain
+        $namaPemakai = $lastPergi?->nama_pemakai;
+        $departemen  = $lastPergi?->departemen;
+        $driver      = $lastPergi?->driver;
+        $tujuan      = $lastPergi?->tujuan;
+        $keterangan  = $request->keterangan ?? $lastPergi?->keterangan;
+        $km_awal     = $lastPergi?->km_awal;
+        $km_akhir    = $lastPergi?->km_akhir;
+    }
+
+    $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
+    $driver      = $driver ? Str::title($driver) : null;
+
+    $kendaraan->status = $request->status;
+    $kendaraan->updated_at = now();
+    $kendaraan->save();
+
+    HistoryKendaraan::create([
+        'kendaraan_id' => $kendaraan->id,
+        'status'       => $request->status,
+        'nama_pemakai' => $namaPemakai,
+        'departemen'   => $departemen,
+        'driver'       => $driver,
+        'tujuan'       => $tujuan,
+        'keterangan'   => $keterangan,
+        'km_awal'      => $km_awal ?? null,
+        'km_akhir'     => $km_akhir ?? null,
+        'pic_update'   => auth()->user()->username,
+    ]);
+
+    broadcast(new KendaraanUpdated($kendaraan));
+
+    return response()->json([
+        'success'    => true,
+        'message'    => "Status kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil diperbarui!",
+        'status'     => $kendaraan->status,
+        'updated_at' => $kendaraan->updated_at->toIso8601String(),
+    ]);
+}
+
 }

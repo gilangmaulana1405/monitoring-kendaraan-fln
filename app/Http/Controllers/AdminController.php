@@ -25,31 +25,50 @@ class AdminController extends Controller
         return view('admin.history');
     }
 
-    public function getDatahistoryKendaraan()
-    {
-        $data = HistoryKendaraan::with('kendaraan') // join relasi
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($item) {
-                // Pastikan kendaraan tersedia (relasi tidak null)
-                $namaMobil = $item->kendaraan->nama_mobil ?? '-';
-                $nopol = $item->kendaraan->nopol ?? '-';
-                $status = $item->status ?? '-';
+   public function getDatahistoryKendaraan()
+{
+    $data = HistoryKendaraan::with('kendaraan')
+        ->orderBy('updated_at', 'desc')
+        ->get()
+        ->map(function ($item) {
+            $namaMobil = $item->kendaraan->nama_mobil ?? '-';
+            $nopol = $item->kendaraan->nopol ?? '-';
+            $status = $item->status ?? '-';
 
-                // Gabungkan nama mobil dan nopol
-                $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
+            $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
+            $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
+            $item->status = $status;
 
-                // Gabungkan nama pemakai dan departemen
-                $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
+            // Default 0 kalau null
+            $km_awal  = $item->km_awal ?? 0;
+            $km_akhir = $item->km_akhir ?? 0;
+            $selisih  = $km_akhir - $km_awal;
 
-                // Tambahkan properti status untuk badge di view
-                $item->status = $status;
+            if (strtolower($status) === 'pergi') {
+                $item->total_km = "<div>
+                    <small><em>Km Awal</em></small><br>
+                    {$km_awal}
+                </div>";
+            } elseif (strtolower($status) === 'stand by') {
+                $item->total_km = "<div>
+                    <small><em>Km Awal - Km Akhir</em></small><br>
+                    {$km_awal} - {$km_akhir}<br>
+                    <strong>= {$selisih} km</strong>
+                </div>";
+            } else {
+                $item->total_km = "<div>
+                    <small><em>Km Awal - Km Akhir</em></small><br>
+                    {$km_awal} - {$km_akhir}<br>
+                    <strong>= {$selisih} km</strong>
+                </div>";
+            }
 
-                return $item;
-            });
+            return $item;
+        });
 
-        return response()->json($data);
-    }
+    return response()->json($data);
+}
+
 
     public function listUsers()
     {
@@ -253,7 +272,7 @@ class AdminController extends Controller
             'updated_at' => $kendaraan->updated_at,
             'image_path' => asset('storage/mobil/' . $kendaraan->gambar_mobil),
         ]));
-        
+
 
         return redirect('/kendaraan')->with('success', "Kendaraan <strong>{$kendaraan->nama_mobil} {$kendaraan->nopol}</strong> berhasil ditambahkan!");
     }

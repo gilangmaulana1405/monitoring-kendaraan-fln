@@ -58,6 +58,7 @@
                             <th>Driver</th>
                             <th>Tujuan</th>
                             <th>Keterangan</th>
+                            <th>Total KM</th>
                             <th>PIC Update</th>
                         </tr>
                     </thead>
@@ -102,6 +103,9 @@
                     }
                     , {
                         title: "Keterangan"
+                    }
+                    , {
+                        title: "Total KM"
                     }
                     , {
                         title: "PIC Update"
@@ -166,6 +170,7 @@
                                 , item.driver
                                 , item.tujuan
                                 , item.keterangan
+                                , item.total_km
                                 , item.pic_update
                             ]);
                         });
