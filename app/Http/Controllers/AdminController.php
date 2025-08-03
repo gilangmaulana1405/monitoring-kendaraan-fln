@@ -353,7 +353,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'nama_lengkap' => 'required',
-            'username' => 'required|unique:users,username|min:3',
+            'username' => 'required|min:3|unique:users,username,' . $id,
             'jabatan' => 'required'
         ], [
             'username.unique' => 'Username sudah ada.',
@@ -370,6 +370,7 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'User berhasil diperbarui!']);
     }
+
 
     public function hapusUsers($id)
     {
