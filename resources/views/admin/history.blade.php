@@ -59,6 +59,7 @@
                             <th>Tujuan</th>
                             <th>Keterangan</th>
                             <th>Total KM</th>
+                            <th>Catatan Perbaikan</th>
                             <th>PIC Update</th>
                         </tr>
                     </thead>
@@ -106,6 +107,9 @@
                     }
                     , {
                         title: "Total KM"
+                    }
+                    , {
+                        title: "Catatan Perbaikan"
                     }
                     , {
                         title: "PIC Update"
@@ -171,6 +175,7 @@
                                 , item.tujuan
                                 , item.keterangan
                                 , item.total_km
+                                , item.catatan_perbaikan
                                 , item.pic_update
                             ]);
                         });

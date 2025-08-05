@@ -34,10 +34,12 @@ class AdminController extends Controller
                 $namaMobil = $item->kendaraan->nama_mobil ?? '-';
                 $nopol = $item->kendaraan->nopol ?? '-';
                 $status = $item->status ?? '-';
+                $catatan_perbaikan = $item->catatan_perbaikan ?? '';
 
                 $item->mobil = $namaMobil . '<br>(' . $nopol . ')';
-                $item->pemakai = ($item->nama_pemakai ?? '-') . ' <br> ' . ($item->departemen ?? '-');
+                $item->pemakai = ($item->nama_pemakai ?? '') . ' <br> ' . ($item->departemen ?? '');
                 $item->status = $status;
+                $item->catatan_perbaikan = $catatan_perbaikan;
 
                 // Default 0 kalau null
                 $km_awal  = $item->km_awal ?? 0;

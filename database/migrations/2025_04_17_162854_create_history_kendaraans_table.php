@@ -20,9 +20,10 @@ return new class extends Migration
             $table->string('driver')->nullable();
             $table->text('tujuan')->nullable();
             $table->string('keterangan')->nullable();
-            $table->string('pic_update')->nullable();
             $table->integer('km_awal')->nullable();
             $table->integer('km_akhir')->nullable();
+            $table->text('catatan_perbaikan')->nullable();
+            $table->string('pic_update')->nullable();
             $table->timestamps();
         });
     }

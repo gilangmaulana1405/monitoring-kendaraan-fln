@@ -154,7 +154,6 @@ class KendaraanController extends Controller
         return view('kendaraan.overview', compact('kendaraan', 'kendaraanIds'));
     }
 
-
     public function update(Request $request)
     {
         $rules = [
@@ -168,14 +167,14 @@ class KendaraanController extends Controller
             $rules['tujuan']      = 'nullable|string';
             $rules['keterangan']  = 'nullable|string';
             $rules['km_awal']     = 'required|numeric|min:0';
-            
+
             if ($request->driver === 'Lain-lain') {
                 $rules['driver_lain'] = 'required|string';
             }
         } elseif ($request->status === 'Stand By') {
             $rules['km_akhir'] = 'required|numeric|min:0';
         } else {
-            $rules['catatan_perbaikan']  = 'nullable|string';
+            $rules['catatan_perbaikan'] = 'nullable|string';
         }
 
         $request->validate($rules);
@@ -206,7 +205,7 @@ class KendaraanController extends Controller
             $km_awal     = $lastPergi?->km_awal;
             $km_akhir    = $request->km_akhir;
         } else {
-            // Perbaikan atau status lain
+            // Perbaikan
             $namaPemakai = $lastPergi?->nama_pemakai;
             $departemen  = $lastPergi?->departemen;
             $driver      = $lastPergi?->driver;
@@ -214,14 +213,17 @@ class KendaraanController extends Controller
             $keterangan  = $lastPergi?->keterangan;
             $km_awal     = $lastPergi?->km_awal;
             $km_akhir    = $lastPergi?->km_akhir;
-            $catatan_perbaikan = $request->catatan_perbaikan;
         }
+
+        // pakai ternary untuk catatan_perbaikan
+        $catatan_perbaikan = $request->status === 'Perbaikan'
+            ? $request->catatan_perbaikan
+            : null;
 
         $namaPemakai = $namaPemakai ? Str::title($namaPemakai) : null;
         $driver      = $driver ? Str::title($driver) : null;
 
         $kendaraan->status = $request->status;
-        $kendaraan->catatan_perbaikan = $catatan_perbaikan;
         $kendaraan->updated_at = now();
         $kendaraan->save();
 
@@ -235,6 +237,7 @@ class KendaraanController extends Controller
             'keterangan'   => $keterangan,
             'km_awal'      => $km_awal ?? null,
             'km_akhir'     => $km_akhir ?? null,
+            'catatan_perbaikan'   => $catatan_perbaikan,
             'pic_update'   => auth()->user()->username,
         ]);
 

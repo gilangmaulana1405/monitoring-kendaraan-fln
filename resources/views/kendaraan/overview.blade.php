@@ -90,69 +90,67 @@
                 @foreach($kendaraan as $k)
                 <div class="col-md-4 mb-4" data-id="{{ $k->id }}" data-status="{{ $k->status }}" data-updated="{{ $k->updated_at }}">
                     <div class="kendaraan-card">
-                     <div class="card">
-                         <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
-                         <div class="card-body position-relative">
-                             <h5 class="card-title">{{ $k->nama_mobil }}</h5>
-                             <p class="card-text">{{ $k->nopol }}</p>
+                        <div class="card">
+                            <img src="{{ asset($k->image_path) }}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
+                            <div class="card-body position-relative">
+                                <h5 class="card-title">{{ $k->nama_mobil }}</h5>
+                                <p class="card-text">{{ $k->nopol }}</p>
 
-                             @auth
-                             @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
-                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
-                                 Update Status
-                             </button>
-                             @endif
-                             @endauth
+                                @auth
+                                @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA', 'Security']))
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal{{ $k->id }}">
+                                    Update Status
+                                </button>
+                                @endif
+                                @endauth
 
-                             {{-- status dalam card --}}
-                             @php
-                             $statusClass = match ($k->status) {
-                             'Stand By' => 'success',
-                             'Pergi' => 'warning',
-                             'Perbaikan' => 'danger',
-                             default => throw new \Exception('Status tidak dikenal: ' . $k->status),
-                             };
-                             @endphp
+                                {{-- status dalam card --}}
+                                @php
+                                $statusClass = match ($k->status) {
+                                'Stand By' => 'success',
+                                'Pergi' => 'warning',
+                                'Perbaikan' => 'danger',
+                                default => throw new \Exception('Status tidak dikenal: ' . $k->status),
+                                };
+                                @endphp
 
-                             <div class="position-absolute bottom-0 end-0 text-end m-2">
-                                 <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
-                                     {{ $k->status }}
-                                 </span>
-                                 <br>
-                                 <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
-                                     {{ $k->updated_at ? $k->updated_at->diffForHumans() : '' }}
-                                 </small>
+                                <div class="position-absolute bottom-0 end-0 text-end m-2">
+                                    <span class="badge bg-{{ $statusClass }} mb-1 status-badge">
+                                        {{ $k->status }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted waktu-update mt-1 d-block" data-updated="{{ $k->updated_at }}">
+                                        {{ $k->updated_at ? $k->updated_at->diffForHumans() : '' }}
+                                    </small>
 
-                                 @auth
-                                 @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']) && !in_array($k->status, ['Pergi', 'Perbaikan']))
+                                    @auth
+                                    @if(in_array(auth()->user()->jabatan, ['Admin GA', 'Staff GA']) && !in_array($k->status, ['Pergi', 'Perbaikan']))
 
-                                 {{-- Tombol Edit & Hapus --}}
-                                 <div class="mt-2 kendaraan-action-buttons position-relative" style="padding-bottom: 2.5rem;">
-                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
-                                         Edit
-                                     </button>
+                                    <div class="mt-2 kendaraan-action-buttons position-relative" style="padding-bottom: 2.5rem;">
+                                        {{-- Tombol Edit & Hapus --}}
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-{{ $k->id }}">
+                                            Edit
+                                        </button>
 
-                                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
-                                         Hapus
-                                     </button>
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal{{ $k->id }}">
+                                            Hapus
+                                        </button>
 
-                                     {{-- Toggle Visibilitas --}}
-                                     <form action="{{ route('sembunyikan.kendaraan', $k->id) }}" method="POST" class="position-absolute" style="right: 0.5rem; bottom: 0.5rem;">
-                                         @csrf
-                                         @method('PUT')
-                                         <div class="form-check form-switch">
-                                             <input class="form-check-input" type="checkbox" role="switch" style="width: 3rem; height: 1.5rem;" onchange="this.form.submit()" {{ $k->isVisible == 0 ? 'checked' : '' }}>
-                                         </div>
-                                     </form>
-                                 </div>
+                                        {{-- Toggle Visibilitas --}}
+                                        <form action="{{ route('sembunyikan.kendaraan', $k->id) }}" method="POST" class="position-absolute" style="right: 0.5rem; bottom: 0.5rem;">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" style="width: 3rem; height: 1.5rem;" onchange="this.form.submit()" {{ $k->isVisible == 0 ? 'checked' : '' }}>
+                                            </div>
+                                        </form>
+                                    </div>
 
-                                 @endif
-                                 @endauth
-                             </div>
-                         </div>
-                     </div>
-
-
+                                    @endif
+                                    @endauth
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -544,36 +542,36 @@
                             "";
 
                         return `
-        <div class="col-md-4 mb-4" data-id="${data.id}" data-status="${data.status}" data-updated="${data.updated_at}">
-            <div class="kendaraan-card">
-                <div class="card">
-                    <img src="${data.image_path}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
-                    <div class="card-body position-relative">
-                        <h5 class="card-title">${data.nama_mobil}</h5>
-                        <p class="card-text">${data.nopol}</p>
+                            <div class="col-md-4 mb-4" data-id="${data.id}" data-status="${data.status}" data-updated="${data.updated_at}">
+                                <div class="kendaraan-card">
+                                    <div class="card">
+                                        <img src="${data.image_path}" class="card-img-top w-100" style="height: 350px; object-fit: cover;">
+                                        <div class="card-body position-relative">
+                                            <h5 class="card-title">${data.nama_mobil}</h5>
+                                            <p class="card-text">${data.nopol}</p>
 
-                        ${canUpdate ? `
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal${data.id}">
-                            Update Status
-                        </button>` : ''}
+                                            ${canUpdate ? `
+                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal${data.id}">
+                                                Update Status
+                                            </button>` : ''}
 
-                        <div class="position-absolute bottom-0 end-0 text-end m-2">
-                            <span class="badge bg-${statusClass} mb-1 status-badge">${data.status}</span>
-                            <br>
-                            <small class="text-muted waktu-update mt-1 d-block" data-updated="${data.updated_at}">
-                                ${waktuUpdate}
-                            </small>
+                                            <div class="position-absolute bottom-0 end-0 text-end m-2">
+                                                <span class="badge bg-${statusClass} mb-1 status-badge">${data.status}</span>
+                                                <br>
+                                                <small class="text-muted waktu-update mt-1 d-block" data-updated="${data.updated_at}">
+                                                    ${waktuUpdate}
+                                                </small>
 
-                            ${(canEditDelete && !['Pergi', 'Perbaikan'].includes(data.status)) ? `
-                            <div class="mt-2">
-                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${data.id}">Edit</button>
-                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${data.id}">Hapus</button>
-                            </div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
+                                                ${(canEditDelete && !['Pergi', 'Perbaikan'].includes(data.status)) ? `
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${data.id}">Edit</button>
+                                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${data.id}">Hapus</button>
+                                                </div>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
                     };
 
                     // Handle Add
@@ -639,7 +637,7 @@
                     standbyDiv.style.display = "block";
                     pergiDiv.style.display = "none";
                     perbaikanDiv.style.display = "none";
-                } else if(select.value === "Perbaikan"){
+                } else if (select.value === "Perbaikan") {
                     perbaikanDiv.style.display = "block";
                     standbyDiv.style.display = "none";
                     pergiDiv.style.display = "none";
@@ -671,8 +669,7 @@
             document.querySelectorAll(".updateForm").forEach(form => {
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
-                    
-                    //const id = form.dataset.id;
+
                     const status = form.querySelector("select[name='status']").value;
 
                     if (status === "Pergi") {
@@ -710,12 +707,11 @@
                     }
 
                     if (status === "Perbaikan") {
-                        const catatan_perbaikan = form.querySelector("textarea[name='catatan_perbaikan']")
-                        ?.value.trim() || "";
+                        const catatan_perbaikan = form.querySelector("textarea[name='catatan_perbaikan']") ?.value.trim() || "";
 
                         if (!catatan_perbaikan) {
-                        alert("Catatan perbaikan harus diisi ketika kendaraan sedang dalam masalah!");
-                        return;
+                            alert("Catatan perbaikan harus diisi ketika kendaraan sedang dalam masalah!");
+                            return;
                         }
                     }
 
@@ -736,25 +732,20 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-
                                 // alert setelah update status in/out
-                                document.getElementById("alertBoxUpdateStatus").innerHTML = `<div class='alert alert-success'>${data.message}</div>`;
+                                document.getElementById("alertBoxUpdateStatus").innerHTML =
+                                    `<div class='alert alert-success'>${data.message}</div>`;
                                 setTimeout(() => {
                                     document.getElementById("alertBoxUpdateStatus").innerHTML = "";
                                 }, 3000);
 
-
-                                // Update badge status (local update)
+                                // Update card kendaraan
                                 let wrapper = document.querySelector(`.col-md-4[data-id='${id}']`);
                                 if (wrapper) {
                                     const card = wrapper.querySelector(".kendaraan-card");
                                     const badge = card.querySelector(".status-badge");
 
-                                    const actionButtons = wrapper.querySelector(".kendaraan-action-buttons");
-                                    if (actionButtons && ['Pergi', 'Perbaikan'].includes(data.status)) {
-                                        actionButtons.remove();
-                                    }
-
+                                    // === Update badge ===
                                     if (badge) {
                                         badge.textContent = data.status;
                                         badge.classList.remove("bg-success", "bg-warning", "bg-danger");
@@ -772,36 +763,86 @@
                                         }
                                     }
 
+                                    // === Update waktu ===
                                     const waktu = card.querySelector(".waktu-update");
                                     if (waktu) {
                                         waktu.textContent = dayjs(data.updated_at).fromNow();
                                         waktu.setAttribute("data-updated", data.updated_at);
                                     }
 
-                                    // === Update Tombol Edit & Hapus ===
-                                    if (['Pergi', 'Perbaikan'].includes(data.status)) {
-                                        // Hapus tombol jika status bukan "Stand By"
-                                        if (actionButtons) actionButtons.remove();
-                                    } else {
-                                        // Tambah tombol jika belum ada dan user berhak edit
-                                        if (!actionButtons && canEditDelete) {
-                                            const tombolDiv = document.createElement('div');
-                                            tombolDiv.className = 'mt-2 kendaraan-action-buttons';
-                                            tombolDiv.innerHTML = `
-                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editKendaraanModal-${id}">Edit</button>
-                                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hapusKendaraanModal${id}">Hapus</button>
-                                     `;
+                                    // === Toggle switch sembunyikan kendaraan ===
+                                    let toggleForm = card.querySelector(".form-toggle-visibility") ||
+                                        card.querySelector("form[action*='sembunyikan']");
 
-                                            const posisi = card.querySelector('.position-absolute');
-                                            if (posisi) posisi.appendChild(tombolDiv);
+                                    if (!toggleForm && data.status === "Stand By") {
+                                        const actionWrapper = card.querySelector('.kendaraan-action-buttons');
+                                        if (actionWrapper) {
+                                            const form = document.createElement('form');
+                                            form.action = `/kendaraan/${id}/sembunyikan`;
+                                            form.method = 'POST';
+                                            form.className = 'form-toggle-visibility mt-2'; // posisi di bawah tombol
+                                            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+                                            form.innerHTML = `
+                                                <input type="hidden" name="_token" value="${csrfToken}">
+                                                <input type="hidden" name="_method" value="PUT">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" role="switch" style="width: 3rem; height: 1.5rem;" onchange="this.form.submit()" ${data.isVisible==0 ? 'checked' : '' }>
+                                                </div>
+                                                `;
+                                            actionWrapper.appendChild(form);
+                                            toggleForm = form;
                                         }
                                     }
 
-                                    //  Tambahkan untuk sorting
+                                    if (toggleForm) {
+                                        toggleForm.style.display = (data.status === "Stand By") ? "" : "none";
+                                        const checkbox = toggleForm.querySelector("input[type='checkbox']");
+                                        if (checkbox) {
+                                            checkbox.checked = (data.isVisible == 0);
+                                        }
+                                    }
+
+                                    // === Tombol edit & hapus ===
+                                    const actionButtons = wrapper.querySelector(".kendaraan-action-buttons");
+                                    if (['Pergi', 'Perbaikan'].includes(data.status)) {
+                                        if (actionButtons) {
+                                            // Hapus hanya tombolnya, biarkan toggle tetap ada
+                                            const buttons = actionButtons.querySelectorAll("button");
+                                            buttons.forEach(btn => btn.remove());
+                                        }
+                                    } else {
+                                        if (actionButtons && canEditDelete) {
+                                            // Jika tombol belum ada, tambahkan
+                                            if (!actionButtons.querySelector(".btn-warning")) {
+                                                const tombolEdit = document.createElement('button');
+                                                tombolEdit.type = "button";
+                                                tombolEdit.className = "btn btn-warning btn-sm";
+                                                tombolEdit.setAttribute("data-bs-toggle", "modal");
+                                                tombolEdit.setAttribute("data-bs-target", `#editKendaraanModal-${id}`);
+                                                tombolEdit.innerText = "Edit";
+
+                                                const tombolHapus = document.createElement('button');
+                                                tombolHapus.type = "button";
+                                                tombolHapus.className = "btn btn-danger btn-sm ms-1";
+                                                tombolHapus.setAttribute("data-bs-toggle", "modal");
+                                                tombolHapus.setAttribute("data-bs-target", `#hapusKendaraanModal${id}`);
+                                                tombolHapus.innerText = "Hapus";
+
+                                                // sisipkan sebelum toggle
+                                                if (toggleForm) {
+                                                    actionButtons.insertBefore(tombolEdit, toggleForm);
+                                                    actionButtons.insertBefore(tombolHapus, toggleForm);
+                                                } else {
+                                                    actionButtons.appendChild(tombolEdit);
+                                                    actionButtons.appendChild(tombolHapus);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // update sorting
                                     card.setAttribute("data-status", data.status);
                                     card.setAttribute("data-updated", data.updated_at);
-
-                                    //  Panggil urut ulang
                                     sortKendaraanCards();
                                 }
 
@@ -828,10 +869,10 @@
 
     </script>
 
-<script>
-    window.canEditDelete = @json(in_array(optional(auth()->user())->jabatan, ['Admin GA', 'Staff GA']));
+    <script>
+        window.canEditDelete = @json(in_array(optional(auth()-> user())->jabatan, ['Admin GA', 'Staff GA']));
 
-</script>
+    </script>
 
 
 </body>

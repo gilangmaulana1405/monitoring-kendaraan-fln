@@ -36,9 +36,10 @@ class HistoryKendaraan extends Model
         'driver',
         'tujuan',
         'keterangan',
-        'pic_update',
         'km_awal',
-        'km_akhir',
+        'km_akhir', 
+        'catatan_perbaikan', 
+        'pic_update'
     ];
 
     public function kendaraan()
